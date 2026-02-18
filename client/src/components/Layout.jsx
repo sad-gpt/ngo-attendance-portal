@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
 const Layout = () => (
-  <div className="flex h-screen bg-gray-950">
+  <div className="flex h-screen bg-slate-100 dark:bg-gray-800">
     <Sidebar />
     <div className="flex flex-col flex-1 overflow-hidden">
       <Navbar />

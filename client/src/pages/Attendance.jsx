@@ -72,25 +72,25 @@ const Attendance = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-bold text-gray-100">Attendance</h2>
+    <div className="flex flex-col gap-6 animate-page-enter">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-gray-100">Attendance</h2>
 
       {successMsg && (
-        <div className="bg-emerald-900/40 border border-emerald-700/50 text-emerald-400 text-sm px-4 py-3 rounded-xl">
+        <div className="bg-green-100 dark:bg-emerald-900/40 border border-green-200 dark:border-emerald-700/50 text-green-700 dark:text-emerald-400 text-sm px-4 py-3 rounded-xl">
           {successMsg}
         </div>
       )}
 
       {/* Step 1 — Class & Date selection */}
-      <div className="bg-gray-800 border border-gray-700/50 rounded-2xl p-6">
-        <h3 className="text-sm font-semibold text-gray-300 mb-4">Select Class &amp; Date</h3>
+      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl p-6 animate-fade-slide-up animation-delay-100 hover:shadow-md transition-shadow duration-200">
+        <h3 className="text-sm font-semibold text-slate-600 dark:text-gray-300 mb-4">Select Class &amp; Date</h3>
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400">Class</label>
+            <label className="text-xs text-slate-500 dark:text-gray-400">Class</label>
             <select
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">Select class</option>
               {classes.map((cls) => (
@@ -99,18 +99,18 @@ const Attendance = () => {
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400">Date</label>
+            <label className="text-xs text-slate-500 dark:text-gray-400">Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <button
             onClick={handleLoadStudents}
             disabled={!selectedClass}
-            className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors"
+            className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
           >
             Load Students
           </button>
@@ -119,15 +119,15 @@ const Attendance = () => {
 
       {/* Step 2 — Student checklist */}
       {classStudents.length > 0 && (
-        <div className="bg-gray-800 border border-gray-700/50 rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-700/50 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-300">
+        <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-600/50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-600 dark:text-gray-300">
               {selectedClass} — {classStudents.length} student{classStudents.length !== 1 ? "s" : ""}
             </h3>
-            <span className="text-xs text-gray-400">Check box to mark absent</span>
+            <span className="text-xs text-slate-500 dark:text-gray-400">Check box to mark absent</span>
           </div>
           <table className="w-full text-sm">
-            <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
+            <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
               <tr>
                 <th className="px-6 py-3 text-left">Name</th>
                 <th className="px-6 py-3 text-left">Class</th>
@@ -136,9 +136,9 @@ const Attendance = () => {
             </thead>
             <tbody>
               {classStudents.map((c) => (
-                <tr key={c.id} className="border-t border-gray-700/50 hover:bg-gray-700/30 text-gray-100">
+                <tr key={c.id} className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100">
                   <td className="px-6 py-3">{c.name}</td>
-                  <td className="px-6 py-3 text-gray-400">{c.class}</td>
+                  <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{c.class}</td>
                   <td className="px-6 py-3 text-center">
                     <input
                       type="checkbox"
@@ -151,10 +151,10 @@ const Attendance = () => {
               ))}
             </tbody>
           </table>
-          <div className="px-6 py-4 border-t border-gray-700/50 flex justify-end">
+          <div className="px-6 py-4 border-t border-slate-200 dark:border-gray-600/50 flex justify-end">
             <button
               onClick={() => setShowConfirm(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
             >
               Submit Attendance
             </button>
@@ -164,37 +164,37 @@ const Attendance = () => {
 
       {/* Step 3 — Confirmation modal */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-gray-800 border border-gray-700 rounded-2xl shadow-xl w-full max-w-md p-6 flex flex-col gap-5">
-            <h3 className="text-lg font-bold text-gray-100">Confirm Attendance</h3>
-            <div className="flex flex-col gap-2 text-sm text-gray-300">
-              <p><span className="text-gray-400">Date:</span> {date}</p>
-              <p><span className="text-gray-400">Class:</span> {selectedClass}</p>
-              <p><span className="text-gray-400">Present:</span> {presentStudents.length}</p>
-              <p><span className="text-gray-400">Absent:</span> {absentees.length}</p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-5 animate-scale-in">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-gray-100">Confirm Attendance</h3>
+            <div className="flex flex-col gap-2 text-sm text-slate-600 dark:text-gray-300">
+              <p><span className="text-slate-500 dark:text-gray-400">Date:</span> {date}</p>
+              <p><span className="text-slate-500 dark:text-gray-400">Class:</span> {selectedClass}</p>
+              <p><span className="text-slate-500 dark:text-gray-400">Present:</span> {presentStudents.length}</p>
+              <p><span className="text-slate-500 dark:text-gray-400">Absent:</span> {absentees.length}</p>
             </div>
             {absentees.length > 0 && (
               <div className="flex flex-col gap-2">
-                <p className="text-xs text-gray-400 font-semibold uppercase">Absentees</p>
+                <p className="text-xs text-slate-500 dark:text-gray-400 font-semibold uppercase">Absentees</p>
                 <div className="flex flex-wrap gap-2">
                   {absentees.map((c) => (
-                    <span key={c.id} className="bg-red-900/30 text-red-400 text-xs px-3 py-1 rounded-full">
+                    <span key={c.id} className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs px-3 py-1 rounded-full">
                       {c.name}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-            <div className="flex justify-end gap-3 pt-2 border-t border-gray-700">
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200 dark:border-gray-600">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="bg-gray-600 hover:bg-gray-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                className="bg-slate-200 dark:bg-gray-600 hover:bg-slate-300 dark:hover:bg-gray-500 text-slate-700 dark:text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmSubmit}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
               >
                 Confirm &amp; Submit
               </button>
@@ -204,15 +204,15 @@ const Attendance = () => {
       )}
 
       {/* Records table */}
-      <div className="bg-gray-800 border border-gray-700/50 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-700/50">
-          <h3 className="text-sm font-semibold text-gray-300">Attendance Records</h3>
+      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl overflow-hidden animate-fade-slide-up animation-delay-200">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-600/50">
+          <h3 className="text-sm font-semibold text-slate-600 dark:text-gray-300">Attendance Records</h3>
         </div>
         {records.length === 0 ? (
-          <p className="text-gray-400 text-sm p-6">No attendance records found.</p>
+          <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No attendance records found.</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
+            <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
               <tr>
                 <th className="px-6 py-3 text-left">Child</th>
                 <th className="px-6 py-3 text-left">Date</th>
@@ -221,15 +221,15 @@ const Attendance = () => {
             </thead>
             <tbody>
               {records.map((r) => (
-                <tr key={r.id} className="border-t border-gray-700/50 hover:bg-gray-700/50 text-gray-100">
+                <tr key={r.id} className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100">
                   <td className="px-6 py-3">{r.childName}</td>
-                  <td className="px-6 py-3 text-gray-400">{r.date}</td>
+                  <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{r.date}</td>
                   <td className="px-6 py-3">
                     <span
                       className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                         r.status === "present"
-                          ? "bg-green-900/50 text-green-400"
-                          : "bg-red-900/50 text-red-400"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                          : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                       }`}
                     >
                       {r.status}
