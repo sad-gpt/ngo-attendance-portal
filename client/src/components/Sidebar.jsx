@@ -5,11 +5,12 @@ const links = [
   { to: "/children", label: "Children" },
   { to: "/volunteers", label: "Volunteers" },
   { to: "/attendance", label: "Attendance" },
+  { to: "/reports", label: "Reports" },
 ];
 
 const Sidebar = () => (
-  <div className="w-56 bg-emerald-800 text-white flex flex-col shrink-0">
-    <div className="px-6 py-5 text-lg font-bold tracking-wide border-b border-emerald-700">
+  <div className="w-56 bg-gray-900 border-r border-gray-700/50 text-white flex flex-col shrink-0">
+    <div className="px-6 py-5 text-lg font-bold tracking-wide border-b border-gray-700/50 text-gray-100">
       NGO Manager
     </div>
     <nav className="flex-1 py-4">
@@ -20,8 +21,8 @@ const Sidebar = () => (
           className={({ isActive }) =>
             `flex items-center px-6 py-3 text-sm transition-colors ${
               isActive
-                ? "bg-emerald-700 border-l-4 border-white font-semibold"
-                : "hover:bg-emerald-700/60"
+                ? "bg-emerald-700/30 border-l-2 border-emerald-500 text-emerald-400 font-semibold"
+                : "text-gray-400 hover:bg-gray-800 hover:text-gray-100"
             }`
           }
         >

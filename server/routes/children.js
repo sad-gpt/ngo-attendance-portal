@@ -19,4 +19,12 @@ router.post("/", verifyToken, (req, res) => {
   res.json({ message: "Child added" });
 });
 
+router.put("/:id", verifyToken, (req, res) => {
+  const { name, className, age, gender } = req.body;
+  db.prepare(
+    "UPDATE children SET name = ?, class = ?, age = ?, gender = ? WHERE id = ?"
+  ).run(name, className, age, gender, req.params.id);
+  res.json({ message: "Child updated" });
+});
+
 export default router;

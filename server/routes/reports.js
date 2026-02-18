@@ -16,12 +16,14 @@ router.get("/attendance", verifyToken, (req, res) => {
 
 router.get("/dashboard-stats", verifyToken, (req, res) => {
   const totalChildren = db.prepare("SELECT COUNT(*) as count FROM children").get().count;
-  const totalVolunteers = db.prepare("SELECT COUNT(*) as count FROM users WHERE role='volunteer'").get().count;
+  const totalVolunteers = db.prepare("SELECT COUNT(*) as count FROM volunteers").get().count;
+  const today = new Date().toISOString().slice(0, 10);
+  const attendanceToday = db.prepare("SELECT COUNT(*) as count FROM attendance WHERE date = ? AND status = 'present'").get(today).count;
 
   res.json({
     totalChildren,
     totalVolunteers,
-    attendanceToday: 0
+    attendanceToday
   });
 });
 

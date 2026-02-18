@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Children from "./pages/Children";
 import Volunteers from "./pages/Volunteers";
 import Attendance from "./pages/Attendance";
+import Reports from "./pages/Reports";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
               <Route path="/children" element={<Children />} />
               <Route path="/volunteers" element={<Volunteers />} />
               <Route path="/attendance" element={<Attendance />} />
+              <Route path="/reports" element={<Reports />} />
             </Route>
           </Route>
         </Routes>

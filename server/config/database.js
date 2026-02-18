@@ -27,6 +27,14 @@ CREATE TABLE IF NOT EXISTS attendance (
   status TEXT,
   FOREIGN KEY(childId) REFERENCES children(id)
 );
+
+CREATE TABLE IF NOT EXISTS volunteers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  phone TEXT,
+  role TEXT
+);
 `);
 
 export default db;
