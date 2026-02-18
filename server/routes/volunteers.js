@@ -17,4 +17,17 @@ router.post("/", verifyToken, (req, res) => {
   res.json({ message: "Volunteer added" });
 });
 
+router.put("/:id", verifyToken, (req, res) => {
+  const { name, email, phone, role } = req.body;
+  db.prepare(
+    "UPDATE volunteers SET name = ?, email = ?, phone = ?, role = ? WHERE id = ?"
+  ).run(name, email, phone, role, req.params.id);
+  res.json({ message: "Volunteer updated" });
+});
+
+router.delete("/:id", verifyToken, (req, res) => {
+  db.prepare("DELETE FROM volunteers WHERE id = ?").run(req.params.id);
+  res.json({ message: "Volunteer deleted" });
+});
+
 export default router;
