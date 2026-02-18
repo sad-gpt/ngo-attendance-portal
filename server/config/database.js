@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS attendance (
   childId INTEGER,
   date TEXT,
   status TEXT,
-  FOREIGN KEY(childId) REFERENCES children(id)
+  FOREIGN KEY(childId) REFERENCES children(id),
+  UNIQUE(childId, date)
 );
 
 CREATE TABLE IF NOT EXISTS volunteers (
@@ -36,5 +37,12 @@ CREATE TABLE IF NOT EXISTS volunteers (
   role TEXT
 );
 `);
+
+// Add unique constraint on existing databases (safe if already exists)
+try {
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_child_date ON attendance (childId, date)");
+} catch {
+  // Index already exists or duplicate rows present — no-op
+}
 
 export default db;

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/attendance", verifyToken, (req, res) => {
   const data = db.prepare(`
-    SELECT children.name, attendance.date, attendance.status
+    SELECT children.name, children.class, attendance.date, attendance.status
     FROM attendance
     JOIN children ON attendance.childId = children.id
   `).all();

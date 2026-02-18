@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "../services/api";
 
 const emptyForm = { name: "", email: "", phone: "", role: "" };
@@ -20,9 +21,15 @@ const VolunteerProfileModal = ({ volunteer, onClose, onRefresh }) => {
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-5 animate-scale-in">
+  return createPortal(
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-5 animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-slate-900 dark:text-gray-100">Volunteer Profile</h3>
           <button onClick={onClose} className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
@@ -104,7 +111,8 @@ const VolunteerProfileModal = ({ volunteer, onClose, onRefresh }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -113,6 +121,7 @@ const Volunteers = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [selected, setSelected] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchVolunteers = async () => {
     const res = await api.get("/volunteers");
@@ -129,6 +138,17 @@ const Volunteers = () => {
     fetchVolunteers();
   };
 
+  const q = searchQuery.toLowerCase().trim();
+  const filtered = q
+    ? volunteers.filter(
+        (v) =>
+          v.name.toLowerCase().includes(q) ||
+          (v.email || "").toLowerCase().includes(q) ||
+          (v.phone || "").toLowerCase().includes(q) ||
+          (v.role || "").toLowerCase().includes(q)
+      )
+    : volunteers;
+
   return (
     <div className="flex flex-col gap-6 animate-page-enter">
       {selected && (
@@ -139,11 +159,18 @@ const Volunteers = () => {
         />
       )}
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-gray-100">Volunteers</h2>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-gray-100 shrink-0">Volunteers</h2>
+        <input
+          type="text"
+          placeholder="Search name, email, role…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1 max-w-xs bg-white dark:bg-gray-700 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
+          className="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
         >
           {showForm ? "Cancel" : "+ Add Volunteer"}
         </button>
@@ -203,6 +230,8 @@ const Volunteers = () => {
       <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl overflow-hidden animate-fade-slide-up animation-delay-200">
         {volunteers.length === 0 ? (
           <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No volunteer records found.</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No results match your search.</p>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
@@ -214,7 +243,7 @@ const Volunteers = () => {
               </tr>
             </thead>
             <tbody>
-              {volunteers.map((v) => (
+              {filtered.map((v) => (
                 <tr
                   key={v.id}
                   onClick={() => setSelected(v)}

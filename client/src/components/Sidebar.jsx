@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const icons = {
@@ -55,17 +55,20 @@ const Sidebar = () => {
   const links = allLinks.filter((l) => l.roles.includes(role));
 
   return (
-    <div className="w-56 bg-white dark:bg-gray-800 border-r border-slate-200 dark:border-gray-600/50 flex flex-col shrink-0">
-      <div className="px-6 py-5 text-lg font-bold tracking-wide border-b border-slate-200 dark:border-gray-600/50 text-emerald-600 dark:text-emerald-400">
-        NGO Manager
-      </div>
+    <div className="w-72 bg-white dark:bg-gray-800 border-r border-slate-200 dark:border-gray-600/50 flex flex-col shrink-0">
+      <Link
+        to="/dashboard"
+        className="block px-4 py-5 text-sm font-bold tracking-wide whitespace-nowrap leading-tight border-b border-slate-200 dark:border-gray-600/50 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+      >
+        Prajakirana Seva Charitable Trust
+      </Link>
       <nav className="flex-1 py-4">
         {links.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-6 py-3 text-sm transition-colors ${
+              `flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
                 isActive
                   ? "bg-emerald-50 dark:bg-emerald-950/50 border-l-2 border-emerald-600 dark:border-emerald-500 text-emerald-700 dark:text-emerald-300 font-semibold"
                   : "text-slate-500 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-600/50 hover:text-slate-900 dark:hover:text-gray-100"

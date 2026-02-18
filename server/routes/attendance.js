@@ -26,7 +26,7 @@ router.post("/mark", verifyToken, (req, res) => {
   const { records } = req.body;
 
   const insert = db.prepare(
-    "INSERT INTO attendance (childId, date, status) VALUES (?, ?, ?)"
+    "INSERT OR REPLACE INTO attendance (childId, date, status) VALUES (?, ?, ?)"
   );
 
   const transaction = db.transaction((records) => {
