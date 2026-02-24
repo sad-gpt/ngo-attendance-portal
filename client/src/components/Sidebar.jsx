@@ -1,5 +1,11 @@
 import { Link, NavLink } from "react-router-dom";
 
+const CloseIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 const icons = {
   Dashboard: (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -64,20 +70,43 @@ const links = [
   { to: "/settings", label: "Settings" },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   return (
-    <div className="w-72 bg-white dark:bg-gray-800 border-r border-slate-200 dark:border-gray-600/50 flex flex-col shrink-0">
-      <Link
-        to="/dashboard"
-        className="block px-4 py-5 text-sm font-bold tracking-wide whitespace-nowrap leading-tight border-b border-slate-200 dark:border-gray-600/50 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-      >
-        Prajakirana Seva Charitable Trust
-      </Link>
-      <nav className="flex-1 py-4">
+    <aside
+      className={`
+        fixed inset-y-0 left-0 z-30 flex flex-col w-72
+        bg-white dark:bg-gray-800
+        border-r border-slate-200 dark:border-gray-600/50
+        transform transition-transform duration-300 ease-in-out
+        lg:static lg:translate-x-0 lg:z-auto lg:shrink-0
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+    >
+      {/* Header with trust name and mobile close button */}
+      <div className="flex items-start justify-between px-4 py-5 border-b border-slate-200 dark:border-gray-600/50">
+        <Link
+          to="/dashboard"
+          onClick={onClose}
+          className="text-sm font-bold tracking-wide leading-tight text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors flex-1 pr-2"
+        >
+          Prajakirana Seva Charitable Trust
+        </Link>
+        <button
+          onClick={onClose}
+          className="lg:hidden shrink-0 p-1.5 rounded-lg text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors mt-0.5"
+          aria-label="Close menu"
+        >
+          <CloseIcon />
+        </button>
+      </div>
+
+      {/* Nav links */}
+      <nav className="flex-1 py-4 overflow-y-auto">
         {links.map(({ to, label }) => (
           <NavLink
             key={to}
             to={to}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
                 isActive
@@ -91,7 +120,7 @@ const Sidebar = () => {
           </NavLink>
         ))}
       </nav>
-    </div>
+    </aside>
   );
 };
 

@@ -82,6 +82,7 @@ const Reports = () => {
       </div>
 
       {/* Tabs */}
+      <div className="overflow-x-auto -mx-1 px-1">
       <div className="flex gap-1 bg-slate-100 dark:bg-gray-700 rounded-xl p-1 w-fit">
         {["children", "staff", "volunteers"].map((t) => (
           <button
@@ -96,6 +97,7 @@ const Reports = () => {
             {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
+      </div>
       </div>
 
       {loading ? (
@@ -168,6 +170,7 @@ const Reports = () => {
                       <span className="ml-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs px-2 py-0.5 rounded-full">{studentAbsentees.length}</span>
                     </h3>
                   </div>
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
                       <tr>
@@ -197,6 +200,7 @@ const Reports = () => {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
 
@@ -209,6 +213,7 @@ const Reports = () => {
                       <span className="ml-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs px-2 py-0.5 rounded-full">{staffAbsentees.length}</span>
                     </h3>
                   </div>
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
                       <tr>
@@ -238,6 +243,7 @@ const Reports = () => {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </div>
@@ -257,6 +263,7 @@ const Reports = () => {
               {staffData.length === 0 ? (
                 <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No staff records found.</p>
               ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
                     <tr>
@@ -287,6 +294,7 @@ const Reports = () => {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           )}
@@ -302,6 +310,7 @@ const Reports = () => {
               {volData.length === 0 ? (
                 <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No volunteers recorded for this date.</p>
               ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
                     <tr>
@@ -326,6 +335,7 @@ const Reports = () => {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           )}

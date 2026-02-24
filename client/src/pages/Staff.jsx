@@ -50,8 +50,8 @@ const StaffProfileModal = ({ member, onClose, onRefresh }) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-5 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md sm:mx-4 p-6 flex flex-col gap-5 animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-slate-900 dark:text-gray-100">Staff Profile</h3>
           <button onClick={onClose} className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
@@ -211,30 +211,32 @@ const Staff = () => {
         ) : filtered.length === 0 ? (
           <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No results match your search.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-3 text-left">Name</th>
-                <th className="px-6 py-3 text-left">Email</th>
-                <th className="px-6 py-3 text-left">Age</th>
-                <th className="px-6 py-3 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr
-                  key={s.id}
-                  onClick={() => setSelected(s)}
-                  className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer"
-                >
-                  <td className="px-6 py-3 font-medium">{s.name}</td>
-                  <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{s.email}</td>
-                  <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{s.age || "—"}</td>
-                  <td className="px-6 py-3"><StatusBadge status={s.status} /></td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-3 text-left">Name</th>
+                  <th className="px-6 py-3 text-left">Email</th>
+                  <th className="px-6 py-3 text-left">Age</th>
+                  <th className="px-6 py-3 text-left">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((s) => (
+                  <tr
+                    key={s.id}
+                    onClick={() => setSelected(s)}
+                    className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer"
+                  >
+                    <td className="px-6 py-3 font-medium">{s.name}</td>
+                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{s.email}</td>
+                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{s.age || "—"}</td>
+                    <td className="px-6 py-3"><StatusBadge status={s.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

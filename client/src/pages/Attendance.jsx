@@ -6,9 +6,6 @@ const today = new Date().toISOString().split("T")[0];
 
 const INPUT_CLS = "bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
-const fmtTime = (ts) =>
-  ts ? new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—";
-
 // ── Attendance Confirm Modal ──────────────────────────────────────────────────
 const AttendanceConfirmModal = ({ records, people, date, onCancel, onConfirm }) => {
   const absentees = records.filter((r) => r.status === "absent");
@@ -16,8 +13,8 @@ const AttendanceConfirmModal = ({ records, people, date, onCancel, onConfirm }) 
   const peopleMap = people.reduce((acc, p) => { acc[p.id] = p; return acc; }, {});
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[80vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 flex flex-col max-h-[85vh] sm:max-h-[80vh]">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-600">
           <h3 className="font-bold text-slate-900 dark:text-gray-100 text-lg">Confirm Attendance</h3>
           <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">{date}</p>
@@ -35,26 +32,28 @@ const AttendanceConfirmModal = ({ records, people, date, onCancel, onConfirm }) 
         {absentees.length > 0 ? (
           <div className="overflow-y-auto flex-1">
             <p className="px-6 py-3 text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wide">Absentees</p>
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-gray-700/80 text-slate-500 dark:text-gray-400 uppercase text-xs">
-                <tr>
-                  <th className="px-6 py-2 text-left">Name</th>
-                  <th className="px-6 py-2 text-left">Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {absentees.map((r) => {
-                  const idVal = r.childId ?? r.staffId;
-                  const person = peopleMap[idVal];
-                  return (
-                    <tr key={idVal} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
-                      <td className="px-6 py-2.5 font-medium">{person?.name ?? "—"}</td>
-                      <td className="px-6 py-2.5 text-slate-500 dark:text-gray-400 text-xs">{r.reason || "—"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 dark:bg-gray-700/80 text-slate-500 dark:text-gray-400 uppercase text-xs">
+                  <tr>
+                    <th className="px-6 py-2 text-left">Name</th>
+                    <th className="px-6 py-2 text-left">Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {absentees.map((r) => {
+                    const idVal = r.childId ?? r.staffId;
+                    const person = peopleMap[idVal];
+                    return (
+                      <tr key={idVal} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                        <td className="px-6 py-2.5 font-medium">{person?.name ?? "—"}</td>
+                        <td className="px-6 py-2.5 text-slate-500 dark:text-gray-400 text-xs">{r.reason || "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : (
           <p className="px-6 py-4 text-sm text-slate-500 dark:text-gray-400">All marked present.</p>
@@ -128,50 +127,88 @@ const AttendanceSection = ({ title, people, idKey, date, onDateChange, onSubmit,
         <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No records found.</p>
       ) : (
         <>
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-3 text-left">Name</th>
-                <th className="px-6 py-3 text-left">Age / Info</th>
-                <th className="px-6 py-3 text-center">Status</th>
-                <th className="px-6 py-3 text-left">Reason (if absent)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {people.map((p) => {
-                const status = statuses[p.id] || "present";
-                return (
-                  <tr key={p.id} className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100">
-                    <td className="px-6 py-3 font-medium">{p.name}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{p.age || p.email || "—"}</td>
-                    <td className="px-6 py-3 text-center">
-                      <button
-                        onClick={() => toggleStatus(p.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                          status === "present"
-                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200"
-                        }`}
-                      >
-                        {status === "present" ? "Present" : "Absent"}
-                      </button>
-                    </td>
-                    <td className="px-6 py-3">
-                      {status === "absent" && (
-                        <input
-                          type="text"
-                          placeholder="Enter reason…"
-                          value={reasons[p.id] || ""}
-                          onChange={(e) => setReasons((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                          className="bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full max-w-xs"
-                        />
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {/* Mobile card view */}
+          <div className="md:hidden divide-y divide-slate-200 dark:divide-gray-600/50">
+            {people.map((p) => {
+              const status = statuses[p.id] || "present";
+              return (
+                <div key={p.id} className="px-4 py-3 flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 dark:text-gray-100 text-sm truncate">{p.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-gray-500 mt-0.5">{p.age || p.email || "—"}</p>
+                    {status === "absent" && (
+                      <input
+                        type="text"
+                        placeholder="Reason for absence…"
+                        value={reasons[p.id] || ""}
+                        onChange={(e) => setReasons((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                        className="mt-2 bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full"
+                      />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => toggleStatus(p.id)}
+                    className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      status === "present"
+                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200"
+                        : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200"
+                    }`}
+                  >
+                    {status === "present" ? "Present" : "Absent"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-3 text-left">Name</th>
+                  <th className="px-6 py-3 text-left">Age / Info</th>
+                  <th className="px-6 py-3 text-center">Status</th>
+                  <th className="px-6 py-3 text-left">Reason (if absent)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {people.map((p) => {
+                  const status = statuses[p.id] || "present";
+                  return (
+                    <tr key={p.id} className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100">
+                      <td className="px-6 py-3 font-medium">{p.name}</td>
+                      <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{p.age || p.email || "—"}</td>
+                      <td className="px-6 py-3 text-center">
+                        <button
+                          onClick={() => toggleStatus(p.id)}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                            status === "present"
+                              ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200"
+                              : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200"
+                          }`}
+                        >
+                          {status === "present" ? "Present" : "Absent"}
+                        </button>
+                      </td>
+                      <td className="px-6 py-3">
+                        {status === "absent" && (
+                          <input
+                            type="text"
+                            placeholder="Enter reason…"
+                            value={reasons[p.id] || ""}
+                            onChange={(e) => setReasons((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                            className="bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full max-w-xs"
+                          />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
           <div className="px-6 py-4 border-t border-slate-200 dark:border-gray-600/50 flex justify-end">
             <button
               onClick={handleSubmit}

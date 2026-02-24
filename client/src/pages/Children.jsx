@@ -59,8 +59,8 @@ const ChildModal = ({ mode, initial, onClose, onSaved }) => {
   const headerTitle = isEdit ? "Edit Child" : step === "picker" ? "Add Child" : step === "manual" ? "Add Manually" : "Upload Excel";
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-gray-600">
           <div className="flex items-center gap-3">
             {!isEdit && step !== "picker" && (
@@ -171,8 +171,8 @@ const ChildActionModal = ({ child, onClose, onEdit, onDeleted }) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm sm:mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-gray-600">
           <h3 className="text-slate-900 dark:text-gray-100 font-semibold">{child.name}</h3>
           <button onClick={onClose} className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
@@ -217,8 +217,8 @@ const AgeDeleteDialog = ({ age, count, onClose, onConfirm }) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm sm:mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-gray-600">
           <h3 className="text-slate-900 dark:text-gray-100 font-semibold">Delete Age Group</h3>
           <button onClick={onClose} className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
@@ -272,7 +272,7 @@ const Children = () => {
   return (
     <div className="animate-page-enter">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 gap-4">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           {selectedAge !== null && (
             <button
@@ -291,14 +291,14 @@ const Children = () => {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {selectedAge === null && (
             <input
               type="text"
               placeholder="Search students…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-xs bg-white dark:bg-gray-700 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full sm:w-auto sm:max-w-xs bg-white dark:bg-gray-700 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           )}
           <button
@@ -316,26 +316,28 @@ const Children = () => {
           {searchResults.length === 0 ? (
             <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No results match your search.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
-                <tr>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Age</th>
-                  <th className="px-6 py-3 text-left">Gender</th>
-                  <th className="px-6 py-3 text-left"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {searchResults.map((child) => (
-                  <tr key={child.id} onClick={() => setModal({ type: "action", child })} className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer">
-                    <td className="px-6 py-3 font-medium">{child.name}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.age}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
-                    <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100 dark:bg-gray-600/50 text-slate-500 dark:text-gray-400 uppercase text-xs">
+                  <tr>
+                    <th className="px-6 py-3 text-left">Name</th>
+                    <th className="px-6 py-3 text-left">Age</th>
+                    <th className="px-6 py-3 text-left">Gender</th>
+                    <th className="px-6 py-3 text-left"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {searchResults.map((child) => (
+                    <tr key={child.id} onClick={() => setModal({ type: "action", child })} className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer">
+                      <td className="px-6 py-3 font-medium">{child.name}</td>
+                      <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.age}</td>
+                      <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
+                      <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -391,28 +393,30 @@ const Children = () => {
           {ageChildren.length === 0 ? (
             <p className="text-slate-500 dark:text-gray-400 text-sm p-6">No children in this age group.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-gray-600/30 text-slate-500 dark:text-gray-400 uppercase text-xs">
-                <tr>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Gender</th>
-                  <th className="px-6 py-3 text-left"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {ageChildren.map((child) => (
-                  <tr
-                    key={child.id}
-                    onClick={() => setModal({ type: "action", child })}
-                    className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer"
-                  >
-                    <td className="px-6 py-3 font-medium">{child.name}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
-                    <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 dark:bg-gray-600/30 text-slate-500 dark:text-gray-400 uppercase text-xs">
+                  <tr>
+                    <th className="px-6 py-3 text-left">Name</th>
+                    <th className="px-6 py-3 text-left">Gender</th>
+                    <th className="px-6 py-3 text-left"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {ageChildren.map((child) => (
+                    <tr
+                      key={child.id}
+                      onClick={() => setModal({ type: "action", child })}
+                      className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer"
+                    >
+                      <td className="px-6 py-3 font-medium">{child.name}</td>
+                      <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
+                      <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}

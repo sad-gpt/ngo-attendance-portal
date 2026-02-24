@@ -39,7 +39,7 @@ const StatCard = ({ label, total, subStats, onClick, icon, className = "", persi
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl p-6 hover:shadow-lg hover:scale-[1.03] hover:ring-2 hover:ring-emerald-400/40 transition-all duration-200 cursor-pointer ${className}`}
+      className={`bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl p-5 sm:p-6 hover:shadow-lg hover:scale-[1.02] hover:ring-2 hover:ring-emerald-400/40 active:scale-[0.98] transition-all duration-200 cursor-pointer select-none ${className}`}
     >
       <div className="flex items-center gap-2 mb-1">
         {icon && <span className="text-xl">{icon}</span>}
@@ -62,9 +62,9 @@ const StatCard = ({ label, total, subStats, onClick, icon, className = "", persi
   );
 };
 
-const BACKDROP = "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm";
-const MODAL_BOX = "bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-scale-in flex flex-col max-h-[80vh]";
-const MODAL_HEADER = "flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-gray-600 shrink-0";
+const BACKDROP = "fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm";
+const MODAL_BOX = "bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 animate-scale-in flex flex-col max-h-[85vh] sm:max-h-[80vh]";
+const MODAL_HEADER = "flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-gray-600 shrink-0";
 const TABLE_HEAD = "bg-slate-50 dark:bg-gray-600/30 text-slate-500 dark:text-gray-400 uppercase text-xs sticky top-0";
 
 const StatusBadge = ({ status }) => (
@@ -105,7 +105,7 @@ const ChildrenModal = ({ onClose }) => {
       <div className={MODAL_BOX} onClick={(e) => e.stopPropagation()}>
         <div className={MODAL_HEADER}>
           <h3 className="font-semibold text-slate-900 dark:text-gray-100">Children</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-2xl leading-none p-1">&times;</button>
         </div>
         <div className="overflow-y-auto flex-1">
           {loading ? (
@@ -114,7 +114,7 @@ const ChildrenModal = ({ onClose }) => {
             <p className="text-center text-slate-400 dark:text-gray-500 py-8 text-sm">No children found.</p>
           ) : (
             <>
-              <div className="px-6 pt-4 pb-2">
+              <div className="px-5 pt-4 pb-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                   In Campus <span className="ml-1 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">{inKids.length}</span>
                 </p>
@@ -122,23 +122,23 @@ const ChildrenModal = ({ onClose }) => {
               {inKids.length === 0 ? (
                 <p className="text-center text-slate-400 dark:text-gray-500 py-4 text-sm">None in campus.</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className={TABLE_HEAD}>
-                    <tr>
-                      <th className="px-6 py-3 text-left">Name</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inKids.map((child) => (
-                      <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
-                        <td className="px-6 py-3 font-medium">{child.name}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className={TABLE_HEAD}>
+                      <tr><th className="px-5 py-3 text-left">Name</th></tr>
+                    </thead>
+                    <tbody>
+                      {inKids.map((child) => (
+                        <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                          <td className="px-5 py-3 font-medium">{child.name}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
 
-              <div className="px-6 pt-5 pb-2 border-t border-slate-200 dark:border-gray-600/50 mt-2">
+              <div className="px-5 pt-5 pb-2 border-t border-slate-200 dark:border-gray-600/50 mt-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
                   Outside <span className="ml-1 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded-full">{outKids.length}</span>
                 </p>
@@ -146,28 +146,30 @@ const ChildrenModal = ({ onClose }) => {
               {outKids.length === 0 ? (
                 <p className="text-center text-slate-400 dark:text-gray-500 py-4 text-sm">None outside.</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className={TABLE_HEAD}>
-                    <tr>
-                      <th className="px-6 py-3 text-left">Name</th>
-                      <th className="px-6 py-3 text-left">Exit Time</th>
-                      <th className="px-6 py-3 text-left">Return Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {outKids.map((child) => (
-                      <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
-                        <td className="px-6 py-3 font-medium">{child.name}</td>
-                        <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{fmtTime(timeMap[child.id]?.exitTime)}</td>
-                        <td className="px-6 py-3">
-                          {timeMap[child.id]?.returnTime
-                            ? <span className="text-slate-500 dark:text-gray-400">{fmtTime(timeMap[child.id].returnTime)}</span>
-                            : <span className="text-amber-600 dark:text-amber-400 font-medium">Still out</span>}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className={TABLE_HEAD}>
+                      <tr>
+                        <th className="px-5 py-3 text-left">Name</th>
+                        <th className="px-5 py-3 text-left">Exit</th>
+                        <th className="px-5 py-3 text-left">Return</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {outKids.map((child) => (
+                        <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                          <td className="px-5 py-3 font-medium">{child.name}</td>
+                          <td className="px-5 py-3 text-slate-500 dark:text-gray-400">{fmtTime(timeMap[child.id]?.exitTime)}</td>
+                          <td className="px-5 py-3">
+                            {timeMap[child.id]?.returnTime
+                              ? <span className="text-slate-500 dark:text-gray-400">{fmtTime(timeMap[child.id].returnTime)}</span>
+                              : <span className="text-amber-600 dark:text-amber-400 font-medium">Still out</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </>
           )}
@@ -194,7 +196,7 @@ const StaffModal = ({ onClose }) => {
       <div className={MODAL_BOX} onClick={(e) => e.stopPropagation()}>
         <div className={MODAL_HEADER}>
           <h3 className="font-semibold text-slate-900 dark:text-gray-100">Staff</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-2xl leading-none p-1">&times;</button>
         </div>
         <div className="overflow-y-auto flex-1">
           {loading ? (
@@ -202,24 +204,26 @@ const StaffModal = ({ onClose }) => {
           ) : staff.length === 0 ? (
             <p className="text-center text-slate-400 dark:text-gray-500 py-8 text-sm">No staff found.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className={TABLE_HEAD}>
-                <tr>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Email</th>
-                  <th className="px-6 py-3 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((s) => (
-                  <tr key={s.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
-                    <td className="px-6 py-3 font-medium">{s.name}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{s.email}</td>
-                    <td className="px-6 py-3"><StatusBadge status={s.status} /></td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className={TABLE_HEAD}>
+                  <tr>
+                    <th className="px-5 py-3 text-left">Name</th>
+                    <th className="px-5 py-3 text-left">Email</th>
+                    <th className="px-5 py-3 text-left">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {staff.map((s) => (
+                    <tr key={s.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                      <td className="px-5 py-3 font-medium">{s.name}</td>
+                      <td className="px-5 py-3 text-slate-500 dark:text-gray-400 text-xs">{s.email}</td>
+                      <td className="px-5 py-3"><StatusBadge status={s.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
@@ -247,7 +251,7 @@ const VolunteersModal = ({ onClose }) => {
       <div className={MODAL_BOX} onClick={(e) => e.stopPropagation()}>
         <div className={MODAL_HEADER}>
           <h3 className="font-semibold text-slate-900 dark:text-gray-100">Today's Volunteers</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-2xl leading-none p-1">&times;</button>
         </div>
         <div className="overflow-y-auto flex-1">
           {loading ? (
@@ -255,30 +259,32 @@ const VolunteersModal = ({ onClose }) => {
           ) : entries.length === 0 ? (
             <p className="text-center text-slate-400 dark:text-gray-500 py-8 text-sm">No volunteers today.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead className={TABLE_HEAD}>
-                <tr>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Reason</th>
-                  <th className="px-6 py-3 text-left">Arrived</th>
-                  <th className="px-6 py-3 text-left">Departed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((e) => (
-                  <tr key={e.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
-                    <td className="px-6 py-3 font-medium">{e.name}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{e.reason || "—"}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{fmt(e.arrivalTime)}</td>
-                    <td className="px-6 py-3">
-                      {e.departureTime
-                        ? <span className="text-slate-500 dark:text-gray-400">{fmt(e.departureTime)}</span>
-                        : <span className="text-amber-600 dark:text-amber-400 font-medium">Still here</span>}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className={TABLE_HEAD}>
+                  <tr>
+                    <th className="px-5 py-3 text-left">Name</th>
+                    <th className="px-5 py-3 text-left">Reason</th>
+                    <th className="px-5 py-3 text-left">Arrived</th>
+                    <th className="px-5 py-3 text-left">Departed</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {entries.map((e) => (
+                    <tr key={e.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                      <td className="px-5 py-3 font-medium">{e.name}</td>
+                      <td className="px-5 py-3 text-slate-500 dark:text-gray-400">{e.reason || "—"}</td>
+                      <td className="px-5 py-3 text-slate-500 dark:text-gray-400">{fmt(e.arrivalTime)}</td>
+                      <td className="px-5 py-3">
+                        {e.departureTime
+                          ? <span className="text-slate-500 dark:text-gray-400">{fmt(e.departureTime)}</span>
+                          : <span className="text-amber-600 dark:text-amber-400 font-medium">Still here</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
@@ -315,11 +321,11 @@ const Dashboard = () => {
       <h2 className="text-2xl font-bold text-slate-900 dark:text-gray-100 mb-4">Dashboard</h2>
 
       <div className="text-center mb-8 animate-fade-slide-up animation-delay-100">
-        <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">{dayName}</p>
+        <p className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">{dayName}</p>
         <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">{dateStr}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <StatCard
           label="Total Children"
           total={stats?.children.total ?? null}
