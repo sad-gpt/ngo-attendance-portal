@@ -29,35 +29,17 @@ router.get("/dashboard-stats", verifyToken, (req, res) => {
 router.get("/attendance/children", verifyToken, (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
 
-  const allChildren = db.prepare("SELECT id, age FROM children").all();
-  const attendanceRecords = db
-    .prepare("SELECT childId, status FROM attendance_children WHERE date = ?")
+  const records = db
+    .prepare(
+      `SELECT c.id AS childId, c.name, c.gender, c.age,
+              a.status, a.reason
+       FROM children c
+       LEFT JOIN attendance_children a ON c.id = a.childId AND a.date = ?
+       ORDER BY c.age, c.name`
+    )
     .all(date);
 
-  const attendanceMap = {};
-  for (const r of attendanceRecords) {
-    attendanceMap[r.childId] = r.status;
-  }
-
-  const ageGroups = {};
-  for (const child of allChildren) {
-    if (!ageGroups[child.age]) {
-      ageGroups[child.age] = { age: child.age, total: 0, present: 0, absent: 0 };
-    }
-    ageGroups[child.age].total++;
-    const status = attendanceMap[child.id];
-    if (status === "present") ageGroups[child.age].present++;
-    else if (status === "absent") ageGroups[child.age].absent++;
-  }
-
-  const result = Object.values(ageGroups)
-    .map((g) => ({
-      ...g,
-      percentage: g.total > 0 ? Math.round((g.present / g.total) * 100) : 0,
-    }))
-    .sort((a, b) => a.age - b.age);
-
-  res.json(result);
+  res.json(records);
 });
 
 router.get("/attendance/staff", verifyToken, (req, res) => {

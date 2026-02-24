@@ -9,7 +9,9 @@ import Dashboard from "./pages/Dashboard";
 import Children from "./pages/Children";
 import Staff from "./pages/Staff";
 import Attendance from "./pages/Attendance";
+import Log from "./pages/Log";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -24,7 +26,9 @@ function App() {
                 <Route path="/children" element={<Children />} />
                 <Route path="/staff" element={<Staff />} />
                 <Route path="/attendance" element={<Attendance />} />
+                <Route path="/log" element={<Log />} />
                 <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
           </Routes>

@@ -38,4 +38,17 @@ router.put("/:id/departure", verifyToken, (req, res) => {
   res.json({ message: "Departure logged" });
 });
 
+router.put("/:id", verifyToken, (req, res) => {
+  const { name, reason, arrivalTime, departureTime } = req.body;
+  db.prepare(
+    "UPDATE volunteers_log SET name = ?, reason = ?, arrivalTime = ?, departureTime = ? WHERE id = ?"
+  ).run(name, reason || null, arrivalTime, departureTime || null, req.params.id);
+  res.json({ message: "Entry updated" });
+});
+
+router.delete("/:id", verifyToken, (req, res) => {
+  db.prepare("DELETE FROM volunteers_log WHERE id = ?").run(req.params.id);
+  res.json({ message: "Entry deleted" });
+});
+
 export default router;

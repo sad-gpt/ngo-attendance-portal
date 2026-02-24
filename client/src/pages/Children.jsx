@@ -5,16 +5,6 @@ import api from "../services/api";
 
 const INPUT_CLS = "bg-white dark:bg-gray-600 border border-slate-300 dark:border-gray-500 text-slate-900 dark:text-gray-100 placeholder-slate-400 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
-const StatusBadge = ({ status }) => (
-  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-    status === "in"
-      ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-      : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-  }`}>
-    {status === "in" ? "In Campus" : "Outside"}
-  </span>
-);
-
 // ── Add/Edit Child Modal ────────────────────────────────────────────────────
 const ChildModal = ({ mode, initial, onClose, onSaved }) => {
   const isEdit = mode === "edit";
@@ -169,25 +159,15 @@ const ChildModal = ({ mode, initial, onClose, onSaved }) => {
 };
 
 // ── Child Action Modal ──────────────────────────────────────────────────────
-const ChildActionModal = ({ child, onClose, onEdit, onDeleted, onStatusChanged }) => {
+const ChildActionModal = ({ child, onClose, onEdit, onDeleted }) => {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [togglingStatus, setTogglingStatus] = useState(false);
 
   const handleDelete = async () => {
     setDeleting(true);
     await api.delete(`/children/${child.id}`);
     setDeleting(false);
     onDeleted();
-  };
-
-  const handleStatusToggle = async () => {
-    setTogglingStatus(true);
-    const newStatus = child.status === "in" ? "out" : "in";
-    await api.put(`/children/${child.id}/status`, { status: newStatus });
-    setTogglingStatus(false);
-    onStatusChanged();
-    onClose();
   };
 
   return createPortal(
@@ -201,7 +181,6 @@ const ChildActionModal = ({ child, onClose, onEdit, onDeleted, onStatusChanged }
           <div className="flex flex-col gap-1 text-sm text-slate-600 dark:text-gray-300 mb-4">
             <span><span className="text-slate-400 dark:text-gray-500">Age: </span>{child.age}</span>
             <span><span className="text-slate-400 dark:text-gray-500">Gender: </span>{child.gender}</span>
-            <span className="flex items-center gap-2"><span className="text-slate-400 dark:text-gray-500">Status: </span><StatusBadge status={child.status} /></span>
           </div>
           {confirming ? (
             <div className="flex flex-col gap-3">
@@ -214,14 +193,9 @@ const ChildActionModal = ({ child, onClose, onEdit, onDeleted, onStatusChanged }
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <button onClick={onEdit} className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">Edit</button>
-                <button onClick={() => setConfirming(true)} className="flex-1 py-2 rounded-xl border border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Delete</button>
-              </div>
-              <button onClick={handleStatusToggle} disabled={togglingStatus} className="w-full py-2 rounded-xl border border-slate-300 dark:border-gray-500 text-slate-600 dark:text-gray-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50">
-                {togglingStatus ? "Updating…" : child.status === "in" ? "Mark as Outside" : "Mark as In Campus"}
-              </button>
+            <div className="flex gap-2">
+              <button onClick={onEdit} className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">Edit</button>
+              <button onClick={() => setConfirming(true)} className="flex-1 py-2 rounded-xl border border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Delete</button>
             </div>
           )}
         </div>
@@ -348,7 +322,6 @@ const Children = () => {
                   <th className="px-6 py-3 text-left">Name</th>
                   <th className="px-6 py-3 text-left">Age</th>
                   <th className="px-6 py-3 text-left">Gender</th>
-                  <th className="px-6 py-3 text-left">Status</th>
                   <th className="px-6 py-3 text-left"></th>
                 </tr>
               </thead>
@@ -358,7 +331,6 @@ const Children = () => {
                     <td className="px-6 py-3 font-medium">{child.name}</td>
                     <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.age}</td>
                     <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
-                    <td className="px-6 py-3"><StatusBadge status={child.status} /></td>
                     <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
                   </tr>
                 ))}
@@ -379,8 +351,6 @@ const Children = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {ages.map((age, idx) => {
                 const kids = grouped[age] || [];
-                const inCount = kids.filter((k) => k.status === "in").length;
-                const outCount = kids.filter((k) => k.status === "out").length;
                 return (
                   <div
                     key={age}
@@ -394,10 +364,6 @@ const Children = () => {
                       <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{age}</span>
                       <span className="text-xs text-slate-500 dark:text-gray-400">years old</span>
                       <span className="text-sm font-semibold text-slate-900 dark:text-gray-100">{kids.length} students</span>
-                      <div className="flex gap-2 flex-wrap">
-                        <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">In: {inCount}</span>
-                        <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full">Out: {outCount}</span>
-                      </div>
                     </button>
                     <div className="px-4 pb-3">
                       <button
@@ -430,7 +396,6 @@ const Children = () => {
                 <tr>
                   <th className="px-6 py-3 text-left">Name</th>
                   <th className="px-6 py-3 text-left">Gender</th>
-                  <th className="px-6 py-3 text-left">Status</th>
                   <th className="px-6 py-3 text-left"></th>
                 </tr>
               </thead>
@@ -443,7 +408,6 @@ const Children = () => {
                   >
                     <td className="px-6 py-3 font-medium">{child.name}</td>
                     <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
-                    <td className="px-6 py-3"><StatusBadge status={child.status} /></td>
                     <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
                   </tr>
                 ))}
@@ -468,7 +432,6 @@ const Children = () => {
           onClose={() => setModal(null)}
           onEdit={() => setModal({ mode: "edit", initial: { ...modal.child } })}
           onDeleted={() => { setModal(null); fetchChildren(); if (selectedAge !== null && grouped[selectedAge]?.length <= 1) setSelectedAge(null); }}
-          onStatusChanged={fetchChildren}
         />
       )}
       {modal?.type === "ageDelete" && (

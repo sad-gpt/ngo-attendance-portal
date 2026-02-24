@@ -30,7 +30,7 @@ const useCountUp = (target, duration = 900) => {
   return count;
 };
 
-const StatCard = ({ label, total, subStats, onClick, icon, className = "" }) => {
+const StatCard = ({ label, total, subStats, onClick, icon, className = "", persistSubStats = false }) => {
   const count = useCountUp(total ?? 0);
   const [hovered, setHovered] = useState(false);
 
@@ -48,7 +48,7 @@ const StatCard = ({ label, total, subStats, onClick, icon, className = "" }) => 
       <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
         {total !== null && total !== undefined ? count : "—"}
       </p>
-      {hovered && subStats && (
+      {(persistSubStats || hovered) && subStats && (
         <div className="flex gap-3 mt-2">
           <span className="inline-flex items-center gap-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
             In: {subStats.in}
@@ -77,89 +77,99 @@ const StatusBadge = ({ status }) => (
   </span>
 );
 
+const fmtTime = (ts) =>
+  ts ? new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "—";
+
 const ChildrenModal = ({ onClose }) => {
   const [children, setChildren] = useState([]);
+  const [timeMap, setTimeMap] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectedAge, setSelectedAge] = useState(null);
 
   useEffect(() => {
-    api.get("/children").then((res) => {
-      setChildren(res.data);
+    Promise.all([api.get("/children"), api.get("/logbook/active")]).then(([childrenRes, logbookRes]) => {
+      setChildren(childrenRes.data);
+      const map = {};
+      for (const entry of logbookRes.data) {
+        if (entry.type === "child") map[entry.personId] = { exitTime: entry.exitTime, returnTime: entry.returnTime };
+      }
+      setTimeMap(map);
       setLoading(false);
     });
   }, []);
 
-  const grouped = children.reduce((acc, c) => {
-    (acc[c.age] = acc[c.age] || []).push(c);
-    return acc;
-  }, {});
-  const ages = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
+  const inKids = children.filter((c) => c.status === "in");
+  const outKids = children.filter((c) => c.status === "out");
 
   return createPortal(
     <div className={BACKDROP} onClick={onClose}>
       <div className={MODAL_BOX} onClick={(e) => e.stopPropagation()}>
         <div className={MODAL_HEADER}>
-          <div className="flex items-center gap-3">
-            {selectedAge !== null && (
-              <button
-                onClick={() => setSelectedAge(null)}
-                className="text-slate-400 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200 text-sm font-medium flex items-center gap-1 transition-colors"
-              >
-                ← Back
-              </button>
-            )}
-            <h3 className="font-semibold text-slate-900 dark:text-gray-100">
-              {selectedAge !== null ? `Age ${selectedAge}` : "Children by Age"}
-            </h3>
-          </div>
+          <h3 className="font-semibold text-slate-900 dark:text-gray-100">Children</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none">&times;</button>
         </div>
         <div className="overflow-y-auto flex-1">
           {loading ? (
             <p className="text-center text-slate-400 dark:text-gray-500 py-8 text-sm">Loading…</p>
-          ) : selectedAge !== null ? (
-            <table className="w-full text-sm">
-              <thead className={TABLE_HEAD}>
-                <tr>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Gender</th>
-                  <th className="px-6 py-3 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(grouped[selectedAge] || []).map((child) => (
-                  <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
-                    <td className="px-6 py-3 font-medium">{child.name}</td>
-                    <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
-                    <td className="px-6 py-3"><StatusBadge status={child.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : ages.length === 0 ? (
+          ) : children.length === 0 ? (
             <p className="text-center text-slate-400 dark:text-gray-500 py-8 text-sm">No children found.</p>
           ) : (
-            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {ages.map((age) => {
-                const kids = grouped[age];
-                const inCount = kids.filter((k) => k.status === "in").length;
-                const outCount = kids.filter((k) => k.status === "out").length;
-                return (
-                  <button
-                    key={age}
-                    onClick={() => setSelectedAge(age)}
-                    className="flex flex-col items-start p-4 bg-slate-50 dark:bg-gray-600/30 border border-slate-200 dark:border-gray-600 rounded-xl hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-all duration-150 text-left"
-                  >
-                    <span className="text-lg font-bold text-slate-900 dark:text-gray-100">Age {age}</span>
-                    <span className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">{kids.length} total</span>
-                    <div className="flex gap-2 mt-2">
-                      <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">In: {inCount}</span>
-                      <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full">Out: {outCount}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            <>
+              <div className="px-6 pt-4 pb-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                  In Campus <span className="ml-1 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">{inKids.length}</span>
+                </p>
+              </div>
+              {inKids.length === 0 ? (
+                <p className="text-center text-slate-400 dark:text-gray-500 py-4 text-sm">None in campus.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className={TABLE_HEAD}>
+                    <tr>
+                      <th className="px-6 py-3 text-left">Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inKids.map((child) => (
+                      <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                        <td className="px-6 py-3 font-medium">{child.name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
+              <div className="px-6 pt-5 pb-2 border-t border-slate-200 dark:border-gray-600/50 mt-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
+                  Outside <span className="ml-1 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded-full">{outKids.length}</span>
+                </p>
+              </div>
+              {outKids.length === 0 ? (
+                <p className="text-center text-slate-400 dark:text-gray-500 py-4 text-sm">None outside.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className={TABLE_HEAD}>
+                    <tr>
+                      <th className="px-6 py-3 text-left">Name</th>
+                      <th className="px-6 py-3 text-left">Exit Time</th>
+                      <th className="px-6 py-3 text-left">Return Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {outKids.map((child) => (
+                      <tr key={child.id} className="border-t border-slate-200 dark:border-gray-600/50 text-slate-900 dark:text-gray-100">
+                        <td className="px-6 py-3 font-medium">{child.name}</td>
+                        <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{fmtTime(timeMap[child.id]?.exitTime)}</td>
+                        <td className="px-6 py-3">
+                          {timeMap[child.id]?.returnTime
+                            ? <span className="text-slate-500 dark:text-gray-400">{fmtTime(timeMap[child.id].returnTime)}</span>
+                            : <span className="text-amber-600 dark:text-amber-400 font-medium">Still out</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -317,6 +327,7 @@ const Dashboard = () => {
           icon="👶"
           onClick={() => setActiveModal("children")}
           className="animate-fade-slide-up animation-delay-100"
+          persistSubStats
         />
         <StatCard
           label="Staff"
