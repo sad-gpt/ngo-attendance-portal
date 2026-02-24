@@ -14,6 +14,18 @@ router.get("/", verifyToken, (req, res) => {
   res.json(records);
 });
 
+router.get("/today", verifyToken, (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const records = db.prepare(`
+    SELECT children.id AS childId, children.name AS childName, children.class AS class
+    FROM attendance
+    JOIN children ON attendance.childId = children.id
+    WHERE attendance.date = ? AND attendance.status = 'present'
+    ORDER BY children.class, children.name
+  `).all(today);
+  res.json(records);
+});
+
 router.post("/", verifyToken, (req, res) => {
   const { childId, date, status } = req.body;
   db.prepare(

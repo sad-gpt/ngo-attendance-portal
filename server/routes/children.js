@@ -27,4 +27,25 @@ router.put("/:id", verifyToken, (req, res) => {
   res.json({ message: "Child updated" });
 });
 
+// DELETE /by-class must be registered BEFORE /:id
+router.delete("/by-class", verifyToken, (req, res) => {
+  const { className } = req.query;
+  if (!className) return res.status(400).json({ message: "className required" });
+  const tx = db.transaction((cls) => {
+    db.prepare("DELETE FROM attendance WHERE childId IN (SELECT id FROM children WHERE class = ?)").run(cls);
+    db.prepare("DELETE FROM children WHERE class = ?").run(cls);
+  });
+  tx(className);
+  res.json({ message: "Class deleted" });
+});
+
+router.delete("/:id", verifyToken, (req, res) => {
+  const tx = db.transaction((id) => {
+    db.prepare("DELETE FROM attendance WHERE childId = ?").run(id);
+    db.prepare("DELETE FROM children WHERE id = ?").run(id);
+  });
+  tx(req.params.id);
+  res.json({ message: "Child deleted" });
+});
+
 export default router;

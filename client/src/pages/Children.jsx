@@ -247,6 +247,141 @@ const ChildModal = ({ mode, initial, onClose, onSaved }) => {
   );
 };
 
+const StudentActionModal = ({ child, onClose, onEdit, onDeleted }) => {
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    await api.delete(`/children/${child.id}`);
+    setDeleting(false);
+    onDeleted();
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-gray-600">
+          <h3 className="text-slate-900 dark:text-gray-100 font-semibold">{child.name}</h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none"
+          >
+            &times;
+          </button>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex flex-col gap-1 text-sm text-slate-600 dark:text-gray-300 mb-5">
+            <span><span className="text-slate-400 dark:text-gray-500">Class: </span>{child.class}</span>
+            <span><span className="text-slate-400 dark:text-gray-500">Age: </span>{child.age}</span>
+            <span><span className="text-slate-400 dark:text-gray-500">Gender: </span>{child.gender}</span>
+          </div>
+          {confirming ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                Are you sure you want to delete {child.name}?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirming(false)}
+                  className="flex-1 py-2 rounded-xl border border-slate-300 dark:border-gray-500 text-slate-600 dark:text-gray-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={onEdit}
+                className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => setConfirming(true)}
+                className="flex-1 py-2 rounded-xl border border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+const ClassDeleteDialog = ({ className, count, onClose, onConfirm }) => {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    setDeleting(true);
+    await api.delete(`/children/by-class?className=${encodeURIComponent(className)}`);
+    setDeleting(false);
+    onConfirm();
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600 rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-gray-600">
+          <h3 className="text-slate-900 dark:text-gray-100 font-semibold">Delete Class</h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-gray-100 text-xl leading-none"
+          >
+            &times;
+          </button>
+        </div>
+        <div className="px-6 py-4 flex flex-col gap-4">
+          <p className="text-sm text-slate-600 dark:text-gray-300">
+            Delete class <span className="font-semibold text-slate-900 dark:text-gray-100">"{className}"</span>?{" "}
+            This will remove all{" "}
+            <span className="font-semibold text-red-500">{count}</span> students and their attendance records.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="flex-1 py-2 rounded-xl border border-slate-300 dark:border-gray-500 text-slate-600 dark:text-gray-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={deleting}
+              className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Yes, Delete Class"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 const Children = () => {
   const [children, setChildren] = useState([]);
   const [modal, setModal] = useState(null);
@@ -282,9 +417,6 @@ const Children = () => {
 
   const toggleClass = (cls) =>
     setExpandedClass((prev) => (prev === cls ? null : cls));
-
-  const openEdit = (child) =>
-    setModal({ mode: "edit", initial: { ...child, className: child.class } });
 
   return (
     <div className="animate-page-enter">
@@ -329,7 +461,7 @@ const Children = () => {
                 {searchResults.map((child) => (
                   <tr
                     key={child.id}
-                    onClick={() => openEdit(child)}
+                    onClick={() => setModal({ type: "studentAction", child })}
                     className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer"
                   >
                     <td className="px-6 py-3 font-medium">{child.name}</td>
@@ -355,23 +487,36 @@ const Children = () => {
                 className="bg-white dark:bg-gray-700 border border-slate-200 dark:border-gray-600/50 rounded-2xl overflow-hidden animate-fade-slide-up hover:shadow-md transition-shadow"
                 style={{ animationDelay: `${idx * 50}ms` }}
               >
-                <button
-                  onClick={() => toggleClass(cls)}
-                  className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-slate-50 dark:hover:bg-gray-600/20 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
+                {/* Accordion header: div with two inner buttons to avoid button-in-button */}
+                <div className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-gray-600/20 transition-colors">
+                  <button
+                    onClick={() => toggleClass(cls)}
+                    className="flex items-center gap-3 flex-1 text-left"
+                  >
                     <span className="font-semibold text-slate-900 dark:text-gray-100">{cls}</span>
                     <span className="text-xs text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-gray-600 px-2 py-0.5 rounded-full">
                       {students.length} {students.length === 1 ? "student" : "students"}
                     </span>
-                  </div>
-                  <span
-                    className="text-slate-400 dark:text-gray-400 text-sm"
-                    style={{ display: "inline-block", transition: "transform 0.2s", transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+                    <span
+                      className="text-slate-400 dark:text-gray-400 text-sm"
+                      style={{ display: "inline-block", transition: "transform 0.2s", transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}
+                    >
+                      ▶
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setModal({ type: "classDelete", className: cls, count: students.length })}
+                    className="ml-3 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title={`Delete class ${cls}`}
                   >
-                    ▶
-                  </span>
-                </button>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                      <path d="M10 11v6M14 11v6"/>
+                      <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                    </svg>
+                  </button>
+                </div>
 
                 {isOpen && (
                   <div className="border-t border-slate-200 dark:border-gray-600/50">
@@ -381,26 +526,20 @@ const Children = () => {
                           <th className="px-6 py-3 text-left">Name</th>
                           <th className="px-6 py-3 text-left">Age</th>
                           <th className="px-6 py-3 text-left">Gender</th>
-                          <th className="px-6 py-3 text-left">Actions</th>
+                          <th className="px-6 py-3 text-left"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {students.map((child) => (
                           <tr
                             key={child.id}
-                            className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100"
+                            onClick={() => setModal({ type: "studentAction", child })}
+                            className="border-t border-slate-200 dark:border-gray-600/50 hover:bg-slate-50 dark:hover:bg-gray-600/20 text-slate-900 dark:text-gray-100 cursor-pointer"
                           >
-                            <td className="px-6 py-3">{child.name}</td>
+                            <td className="px-6 py-3 font-medium">{child.name}</td>
                             <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.age}</td>
                             <td className="px-6 py-3 text-slate-500 dark:text-gray-400">{child.gender}</td>
-                            <td className="px-6 py-3">
-                              <button
-                                onClick={() => openEdit(child)}
-                                className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-xs font-medium"
-                              >
-                                Edit
-                              </button>
-                            </td>
+                            <td className="px-6 py-3 text-slate-400 dark:text-gray-500 text-right text-base">⋯</td>
                           </tr>
                         ))}
                       </tbody>
@@ -413,12 +552,28 @@ const Children = () => {
         </div>
       )}
 
-      {modal && (
+      {modal?.mode && (
         <ChildModal
           mode={modal.mode}
           initial={modal.initial}
           onClose={() => setModal(null)}
           onSaved={fetchChildren}
+        />
+      )}
+      {modal?.type === "studentAction" && (
+        <StudentActionModal
+          child={modal.child}
+          onClose={() => setModal(null)}
+          onEdit={() => setModal({ mode: "edit", initial: { ...modal.child, className: modal.child.class } })}
+          onDeleted={() => { setModal(null); fetchChildren(); }}
+        />
+      )}
+      {modal?.type === "classDelete" && (
+        <ClassDeleteDialog
+          className={modal.className}
+          count={modal.count}
+          onClose={() => setModal(null)}
+          onConfirm={() => { setModal(null); fetchChildren(); }}
         />
       )}
     </div>
