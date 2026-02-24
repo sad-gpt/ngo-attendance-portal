@@ -33,3 +33,15 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+app.get("/create-admin", async (req, res) => {
+  const bcrypt = await import("bcryptjs");
+
+  const hashedPassword = await bcrypt.default.hash("admin123", 10);
+
+  db.prepare(`
+    INSERT INTO users (name, email, password, role)
+    VALUES (?, ?, ?, ?)
+  `).run("Admin", "admin@ngo.com", hashedPassword, "admin");
+
+  res.send("Admin created");
+});
