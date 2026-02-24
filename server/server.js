@@ -42,33 +42,7 @@ app.use("/api/volunteers-log", volunteersLogRoutes);
    TEMP ADMIN CREATION ROUTE
    ⚠ REMOVE AFTER USE
 ============================== */
-app.get("/create-admin", async (req, res) => {
-  try {
-    const bcrypt = await import("bcryptjs");
 
-    const existingUser = db
-      .prepare("SELECT * FROM users WHERE email = ?")
-      .get("admin@ngo.com");
-
-    if (existingUser) {
-      return res.send("Admin already exists");
-    }
-
-    const hashedPassword = await bcrypt.default.hash("admin123", 10);
-
-    db.prepare(
-      `
-      INSERT INTO users (name, email, password, role)
-      VALUES (?, ?, ?, ?)
-    `
-    ).run("Admin", "admin@ngo.com", hashedPassword, "admin");
-
-    res.send("Admin created successfully");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error creating admin");
-  }
-});
 
 /* ==============================
    HEALTH CHECK ROUTE
