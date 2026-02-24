@@ -6,7 +6,9 @@ import authRoutes from "./routes/auth.js";
 import childrenRoutes from "./routes/children.js";
 import attendanceRoutes from "./routes/attendance.js";
 import reportRoutes from "./routes/reports.js";
-import volunteerRoutes from "./routes/volunteers.js";
+import staffRoutes from "./routes/staff.js";
+import logbookRoutes from "./routes/logbook.js";
+import volunteersLogRoutes from "./routes/volunteersLog.js";
 
 dotenv.config();
 
@@ -19,7 +21,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/children", childrenRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/reports", reportRoutes);
-app.use("/api/volunteers", volunteerRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/logbook", logbookRoutes);
+app.use("/api/volunteers-log", volunteersLogRoutes);
 
 const PORT = 5000;
 

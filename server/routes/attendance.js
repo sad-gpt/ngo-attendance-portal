@@ -4,52 +4,92 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, (req, res) => {
-  const records = db.prepare(`
-    SELECT attendance.id, attendance.date, attendance.status, children.name AS childName
-    FROM attendance
-    JOIN children ON attendance.childId = children.id
-    ORDER BY attendance.id DESC
-  `).all();
+// ── Children Attendance ──────────────────────────────────────────────────────
+
+router.get("/children", verifyToken, (req, res) => {
+  const records = db
+    .prepare(
+      `SELECT ac.id, ac.childId, ac.date, ac.status, ac.reason,
+              c.name AS childName, c.age
+       FROM attendance_children ac
+       JOIN children c ON ac.childId = c.id
+       ORDER BY ac.date DESC, c.age, c.name`
+    )
+    .all();
   res.json(records);
 });
 
-router.get("/today", verifyToken, (req, res) => {
+router.get("/children/today", verifyToken, (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
-  const records = db.prepare(`
-    SELECT children.id AS childId, children.name AS childName, children.class AS class
-    FROM attendance
-    JOIN children ON attendance.childId = children.id
-    WHERE attendance.date = ? AND attendance.status = 'present'
-    ORDER BY children.class, children.name
-  `).all(today);
+  const records = db
+    .prepare(
+      `SELECT ac.id, ac.childId, ac.date, ac.status, ac.reason,
+              c.name AS childName, c.age
+       FROM attendance_children ac
+       JOIN children c ON ac.childId = c.id
+       WHERE ac.date = ?
+       ORDER BY c.age, c.name`
+    )
+    .all(today);
   res.json(records);
 });
 
-router.post("/", verifyToken, (req, res) => {
-  const { childId, date, status } = req.body;
-  db.prepare(
-    "INSERT INTO attendance (childId, date, status) VALUES (?, ?, ?)"
-  ).run(childId, date, status);
-  res.json({ message: "Attendance recorded" });
-});
-
-router.post("/mark", verifyToken, (req, res) => {
+router.post("/children/mark", verifyToken, (req, res) => {
   const { records } = req.body;
-
-  const insert = db.prepare(
-    "INSERT OR REPLACE INTO attendance (childId, date, status) VALUES (?, ?, ?)"
+  const upsert = db.prepare(
+    "INSERT OR REPLACE INTO attendance_children (childId, date, status, reason) VALUES (?, ?, ?, ?)"
   );
-
-  const transaction = db.transaction((records) => {
-    for (const r of records) {
-      insert.run(r.childId, r.date, r.status);
+  const transaction = db.transaction((recs) => {
+    for (const r of recs) {
+      upsert.run(r.childId, r.date, r.status, r.reason || null);
     }
   });
-
   transaction(records);
+  res.json({ message: "Children attendance saved" });
+});
 
-  res.json({ message: "Attendance saved" });
+// ── Staff Attendance ─────────────────────────────────────────────────────────
+
+router.get("/staff", verifyToken, (req, res) => {
+  const records = db
+    .prepare(
+      `SELECT ast.id, ast.staffId, ast.date, ast.status, ast.reason,
+              s.name AS staffName
+       FROM attendance_staff ast
+       JOIN staff s ON ast.staffId = s.id
+       ORDER BY ast.date DESC, s.name`
+    )
+    .all();
+  res.json(records);
+});
+
+router.get("/staff/today", verifyToken, (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const records = db
+    .prepare(
+      `SELECT ast.id, ast.staffId, ast.date, ast.status, ast.reason,
+              s.name AS staffName
+       FROM attendance_staff ast
+       JOIN staff s ON ast.staffId = s.id
+       WHERE ast.date = ?
+       ORDER BY s.name`
+    )
+    .all(today);
+  res.json(records);
+});
+
+router.post("/staff/mark", verifyToken, (req, res) => {
+  const { records } = req.body;
+  const upsert = db.prepare(
+    "INSERT OR REPLACE INTO attendance_staff (staffId, date, status, reason) VALUES (?, ?, ?, ?)"
+  );
+  const transaction = db.transaction((recs) => {
+    for (const r of recs) {
+      upsert.run(r.staffId, r.date, r.status, r.reason || null);
+    }
+  });
+  transaction(records);
+  res.json({ message: "Staff attendance saved" });
 });
 
 export default router;

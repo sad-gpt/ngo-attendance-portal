@@ -40,7 +40,6 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [role, setRole] = useState("admin");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
@@ -53,11 +52,7 @@ const Login = () => {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
-      if (res.data.user.role === "volunteer") {
-        navigate("/attendance");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch {
       setError("Invalid email or password. Please try again.");
     } finally {
@@ -199,32 +194,6 @@ const Login = () => {
             </p>
           </div>
 
-          {/* ── Role toggle ── */}
-          <div
-            className="flex rounded-xl p-1 mb-6"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
-          >
-            {["admin", "volunteer"].map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRole(r)}
-                className="flex-1 py-2 text-sm font-semibold rounded-lg transition-all duration-200"
-                style={
-                  role === r
-                    ? {
-                        background: "linear-gradient(135deg, #059669, #0d9488)",
-                        color: "white",
-                        boxShadow: "0 2px 12px rgba(5,150,105,0.4)",
-                      }
-                    : { color: "rgba(255,255,255,0.35)" }
-                }
-              >
-                {r === "admin" ? "Admin" : "Volunteer"}
-              </button>
-            ))}
-          </div>
-
           {/* ── Error ── */}
           {error && (
             <div
@@ -316,7 +285,7 @@ const Login = () => {
                   </>
                 ) : (
                   <>
-                    Sign in as {role === "admin" ? "Admin" : "Volunteer"}
+                    Sign in
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>

@@ -2,18 +2,26 @@ import bcrypt from "bcryptjs";
 import db from "./config/database.js";
 
 const password = bcrypt.hashSync("admin123", 10);
-const volPassword = bcrypt.hashSync("vol123", 10);
 
-db.prepare(`
-INSERT OR IGNORE INTO users (name, email, password, role)
-VALUES (?, ?, ?, ?)
-`).run("Admin", "admin@ngo.com", password, "admin");
+db.prepare(
+  "INSERT OR IGNORE INTO users (name, email, password, role) VALUES (?, ?, ?, ?)"
+).run("Admin", "admin@ngo.com", password, "admin");
 
-db.prepare(`INSERT OR IGNORE INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`)
-  .run("Volunteer User", "volunteer@ngo.com", volPassword, "volunteer");
-
-db.prepare(`INSERT OR IGNORE INTO volunteers (name, email, phone, role) VALUES (?, ?, ?, ?)`).run("Priya Sharma", "priya@ngo.com", "9876543210", "Coordinator");
-db.prepare(`INSERT OR IGNORE INTO volunteers (name, email, phone, role) VALUES (?, ?, ?, ?)`).run("Rahul Verma", "rahul@ngo.com", "9123456789", "Tutor");
-db.prepare(`INSERT OR IGNORE INTO volunteers (name, email, phone, role) VALUES (?, ?, ?, ?)`).run("Anita Singh", "anita@ngo.com", "9988776655", "Social Worker");
+// Sample staff entries
+db.prepare("INSERT OR IGNORE INTO staff (name, age, email) VALUES (?, ?, ?)").run(
+  "Priya Sharma",
+  32,
+  "priya@ngo.com"
+);
+db.prepare("INSERT OR IGNORE INTO staff (name, age, email) VALUES (?, ?, ?)").run(
+  "Rahul Verma",
+  28,
+  "rahul@ngo.com"
+);
+db.prepare("INSERT OR IGNORE INTO staff (name, age, email) VALUES (?, ?, ?)").run(
+  "Anita Singh",
+  35,
+  "anita@ngo.com"
+);
 
 console.log("Seeded successfully");

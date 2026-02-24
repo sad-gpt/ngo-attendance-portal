@@ -7,7 +7,7 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Children from "./pages/Children";
-import Volunteers from "./pages/Volunteers";
+import Staff from "./pages/Staff";
 import Attendance from "./pages/Attendance";
 import Reports from "./pages/Reports";
 
@@ -22,7 +22,7 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/children" element={<Children />} />
-                <Route path="/volunteers" element={<Volunteers />} />
+                <Route path="/staff" element={<Staff />} />
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/reports" element={<Reports />} />
               </Route>

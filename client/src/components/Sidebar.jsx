@@ -1,6 +1,4 @@
-import { useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
 
 const icons = {
   Dashboard: (
@@ -17,7 +15,7 @@ const icons = {
       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
-  Volunteers: (
+  Staff: (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
@@ -41,19 +39,15 @@ const icons = {
   ),
 };
 
-const allLinks = [
-  { to: "/dashboard", label: "Dashboard", roles: ["admin"] },
-  { to: "/children", label: "Children", roles: ["admin"] },
-  { to: "/volunteers", label: "Volunteers", roles: ["admin"] },
-  { to: "/attendance", label: "Attendance", roles: ["admin", "volunteer"] },
-  { to: "/reports", label: "Reports", roles: ["admin"] },
+const links = [
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/children", label: "Children" },
+  { to: "/staff", label: "Staff" },
+  { to: "/attendance", label: "Attendance" },
+  { to: "/reports", label: "Reports" },
 ];
 
 const Sidebar = () => {
-  const { user } = useContext(AuthContext);
-  const role = user?.role || "admin";
-  const links = allLinks.filter((l) => l.roles.includes(role));
-
   return (
     <div className="w-72 bg-white dark:bg-gray-800 border-r border-slate-200 dark:border-gray-600/50 flex flex-col shrink-0">
       <Link
