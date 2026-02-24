@@ -1,53 +1,65 @@
 import express from "express";
-import db from "../config/database.js";
+import prisma from "../config/prisma.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, (req, res) => {
-  const entries = db
-    .prepare("SELECT * FROM volunteers_log ORDER BY arrivalTime DESC")
-    .all();
+function dayRange(dateStr) {
+  return {
+    gte: new Date(dateStr + "T00:00:00.000Z"),
+    lt: new Date(dateStr + "T23:59:59.999Z"),
+  };
+}
+
+router.get("/", verifyToken, async (req, res) => {
+  const entries = await prisma.volunteerLog.findMany({
+    orderBy: { arrivalTime: "desc" },
+  });
   res.json(entries);
 });
 
-router.get("/today", verifyToken, (req, res) => {
+router.get("/today", verifyToken, async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
-  const entries = db
-    .prepare(
-      "SELECT * FROM volunteers_log WHERE date(arrivalTime) = ? ORDER BY arrivalTime DESC"
-    )
-    .all(today);
+  const entries = await prisma.volunteerLog.findMany({
+    where: { arrivalTime: dayRange(today) },
+    orderBy: { arrivalTime: "desc" },
+  });
   res.json(entries);
 });
 
-router.post("/", verifyToken, (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   const { name, reason, arrivalTime } = req.body;
-  db.prepare(
-    "INSERT INTO volunteers_log (name, reason, arrivalTime) VALUES (?, ?, ?)"
-  ).run(name, reason || null, arrivalTime);
+  await prisma.volunteerLog.create({
+    data: { name, reason: reason || null, arrivalTime: new Date(arrivalTime) },
+  });
   res.json({ message: "Arrival logged" });
 });
 
-router.put("/:id/departure", verifyToken, (req, res) => {
+router.put("/:id/departure", verifyToken, async (req, res) => {
   const { departureTime } = req.body;
-  db.prepare("UPDATE volunteers_log SET departureTime = ? WHERE id = ?").run(
-    departureTime,
-    req.params.id
-  );
+  await prisma.volunteerLog.update({
+    where: { id: Number(req.params.id) },
+    data: { departureTime: new Date(departureTime) },
+  });
   res.json({ message: "Departure logged" });
 });
 
-router.put("/:id", verifyToken, (req, res) => {
+router.put("/:id", verifyToken, async (req, res) => {
   const { name, reason, arrivalTime, departureTime } = req.body;
-  db.prepare(
-    "UPDATE volunteers_log SET name = ?, reason = ?, arrivalTime = ?, departureTime = ? WHERE id = ?"
-  ).run(name, reason || null, arrivalTime, departureTime || null, req.params.id);
+  await prisma.volunteerLog.update({
+    where: { id: Number(req.params.id) },
+    data: {
+      name,
+      reason: reason || null,
+      arrivalTime: new Date(arrivalTime),
+      departureTime: departureTime ? new Date(departureTime) : null,
+    },
+  });
   res.json({ message: "Entry updated" });
 });
 
-router.delete("/:id", verifyToken, (req, res) => {
-  db.prepare("DELETE FROM volunteers_log WHERE id = ?").run(req.params.id);
+router.delete("/:id", verifyToken, async (req, res) => {
+  await prisma.volunteerLog.delete({ where: { id: Number(req.params.id) } });
   res.json({ message: "Entry deleted" });
 });
 

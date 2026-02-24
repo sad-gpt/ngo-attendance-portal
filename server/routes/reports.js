@@ -1,23 +1,29 @@
 import express from "express";
-import db from "../config/database.js";
+import prisma from "../config/prisma.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/dashboard-stats", verifyToken, (req, res) => {
+function dayRange(dateStr) {
+  return {
+    gte: new Date(dateStr + "T00:00:00.000Z"),
+    lt: new Date(dateStr + "T23:59:59.999Z"),
+  };
+}
+
+router.get("/dashboard-stats", verifyToken, async (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
 
-  const childrenTotal = db.prepare("SELECT COUNT(*) as count FROM children").get().count;
-  const childrenIn = db.prepare("SELECT COUNT(*) as count FROM children WHERE status = 'in'").get().count;
-  const childrenOut = db.prepare("SELECT COUNT(*) as count FROM children WHERE status = 'out'").get().count;
-
-  const staffTotal = db.prepare("SELECT COUNT(*) as count FROM staff").get().count;
-  const staffIn = db.prepare("SELECT COUNT(*) as count FROM staff WHERE status = 'in'").get().count;
-  const staffOut = db.prepare("SELECT COUNT(*) as count FROM staff WHERE status = 'out'").get().count;
-
-  const volunteersToday = db
-    .prepare("SELECT COUNT(*) as count FROM volunteers_log WHERE date(arrivalTime) = ?")
-    .get(today).count;
+  const [childrenTotal, childrenIn, childrenOut, staffTotal, staffIn, staffOut, volunteersToday] =
+    await Promise.all([
+      prisma.child.count(),
+      prisma.child.count({ where: { status: "in" } }),
+      prisma.child.count({ where: { status: "out" } }),
+      prisma.staff.count(),
+      prisma.staff.count({ where: { status: "in" } }),
+      prisma.staff.count({ where: { status: "out" } }),
+      prisma.volunteerLog.count({ where: { arrivalTime: dayRange(today) } }),
+    ]);
 
   res.json({
     children: { total: childrenTotal, in: childrenIn, out: childrenOut },
@@ -26,29 +32,38 @@ router.get("/dashboard-stats", verifyToken, (req, res) => {
   });
 });
 
-router.get("/attendance/children", verifyToken, (req, res) => {
+router.get("/attendance/children", verifyToken, async (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
 
-  const records = db
-    .prepare(
-      `SELECT c.id AS childId, c.name, c.gender, c.age,
-              a.status, a.reason
-       FROM children c
-       LEFT JOIN attendance_children a ON c.id = a.childId AND a.date = ?
-       ORDER BY c.age, c.name`
-    )
-    .all(date);
+  const [allChildren, attendanceRecords] = await Promise.all([
+    prisma.child.findMany({ orderBy: [{ age: "asc" }, { name: "asc" }] }),
+    prisma.attendanceChild.findMany({ where: { date } }),
+  ]);
 
-  res.json(records);
+  const attendanceMap = {};
+  for (const r of attendanceRecords) {
+    attendanceMap[r.childId] = { status: r.status, reason: r.reason };
+  }
+
+  const result = allChildren.map((c) => ({
+    childId: c.id,
+    name: c.name,
+    gender: c.gender,
+    age: c.age,
+    status: attendanceMap[c.id]?.status || null,
+    reason: attendanceMap[c.id]?.reason || null,
+  }));
+
+  res.json(result);
 });
 
-router.get("/attendance/staff", verifyToken, (req, res) => {
+router.get("/attendance/staff", verifyToken, async (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
 
-  const allStaff = db.prepare("SELECT id, name FROM staff ORDER BY name").all();
-  const attendanceRecords = db
-    .prepare("SELECT staffId, status, reason FROM attendance_staff WHERE date = ?")
-    .all(date);
+  const [allStaff, attendanceRecords] = await Promise.all([
+    prisma.staff.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    prisma.attendanceStaff.findMany({ where: { date } }),
+  ]);
 
   const attendanceMap = {};
   for (const r of attendanceRecords) {
@@ -65,13 +80,12 @@ router.get("/attendance/staff", verifyToken, (req, res) => {
   res.json(result);
 });
 
-router.get("/volunteers-log", verifyToken, (req, res) => {
+router.get("/volunteers-log", verifyToken, async (req, res) => {
   const date = req.query.date || new Date().toISOString().slice(0, 10);
-  const entries = db
-    .prepare(
-      "SELECT * FROM volunteers_log WHERE date(arrivalTime) = ? ORDER BY arrivalTime"
-    )
-    .all(date);
+  const entries = await prisma.volunteerLog.findMany({
+    where: { arrivalTime: dayRange(date) },
+    orderBy: { arrivalTime: "asc" },
+  });
   res.json(entries);
 });
 

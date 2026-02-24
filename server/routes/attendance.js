@@ -1,94 +1,112 @@
 import express from "express";
-import db from "../config/database.js";
+import prisma from "../config/prisma.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // ── Children Attendance ──────────────────────────────────────────────────────
 
-router.get("/children", verifyToken, (req, res) => {
-  const records = db
-    .prepare(
-      `SELECT ac.id, ac.childId, ac.date, ac.status, ac.reason,
-              c.name AS childName, c.age
-       FROM attendance_children ac
-       JOIN children c ON ac.childId = c.id
-       ORDER BY ac.date DESC, c.age, c.name`
-    )
-    .all();
-  res.json(records);
-});
-
-router.get("/children/today", verifyToken, (req, res) => {
-  const today = new Date().toISOString().slice(0, 10);
-  const records = db
-    .prepare(
-      `SELECT ac.id, ac.childId, ac.date, ac.status, ac.reason,
-              c.name AS childName, c.age
-       FROM attendance_children ac
-       JOIN children c ON ac.childId = c.id
-       WHERE ac.date = ?
-       ORDER BY c.age, c.name`
-    )
-    .all(today);
-  res.json(records);
-});
-
-router.post("/children/mark", verifyToken, (req, res) => {
-  const { records } = req.body;
-  const upsert = db.prepare(
-    "INSERT OR REPLACE INTO attendance_children (childId, date, status, reason) VALUES (?, ?, ?, ?)"
-  );
-  const transaction = db.transaction((recs) => {
-    for (const r of recs) {
-      upsert.run(r.childId, r.date, r.status, r.reason || null);
-    }
+router.get("/children", verifyToken, async (req, res) => {
+  const records = await prisma.attendanceChild.findMany({
+    include: { child: { select: { name: true, age: true } } },
+    orderBy: [{ date: "desc" }, { child: { age: "asc" } }, { child: { name: "asc" } }],
   });
-  transaction(records);
+  res.json(
+    records.map((r) => ({
+      id: r.id,
+      childId: r.childId,
+      date: r.date,
+      status: r.status,
+      reason: r.reason,
+      childName: r.child.name,
+      age: r.child.age,
+    }))
+  );
+});
+
+router.get("/children/today", verifyToken, async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const records = await prisma.attendanceChild.findMany({
+    where: { date: today },
+    include: { child: { select: { name: true, age: true } } },
+    orderBy: [{ child: { age: "asc" } }, { child: { name: "asc" } }],
+  });
+  res.json(
+    records.map((r) => ({
+      id: r.id,
+      childId: r.childId,
+      date: r.date,
+      status: r.status,
+      reason: r.reason,
+      childName: r.child.name,
+      age: r.child.age,
+    }))
+  );
+});
+
+router.post("/children/mark", verifyToken, async (req, res) => {
+  const { records } = req.body;
+  await prisma.$transaction(
+    records.map((r) =>
+      prisma.attendanceChild.upsert({
+        where: { childId_date: { childId: r.childId, date: r.date } },
+        update: { status: r.status, reason: r.reason || null },
+        create: { childId: r.childId, date: r.date, status: r.status, reason: r.reason || null },
+      })
+    )
+  );
   res.json({ message: "Children attendance saved" });
 });
 
 // ── Staff Attendance ─────────────────────────────────────────────────────────
 
-router.get("/staff", verifyToken, (req, res) => {
-  const records = db
-    .prepare(
-      `SELECT ast.id, ast.staffId, ast.date, ast.status, ast.reason,
-              s.name AS staffName
-       FROM attendance_staff ast
-       JOIN staff s ON ast.staffId = s.id
-       ORDER BY ast.date DESC, s.name`
-    )
-    .all();
-  res.json(records);
-});
-
-router.get("/staff/today", verifyToken, (req, res) => {
-  const today = new Date().toISOString().slice(0, 10);
-  const records = db
-    .prepare(
-      `SELECT ast.id, ast.staffId, ast.date, ast.status, ast.reason,
-              s.name AS staffName
-       FROM attendance_staff ast
-       JOIN staff s ON ast.staffId = s.id
-       WHERE ast.date = ?
-       ORDER BY s.name`
-    )
-    .all(today);
-  res.json(records);
-});
-
-router.post("/staff/mark", verifyToken, (req, res) => {
-  const { records } = req.body;
-  const upsert = db.prepare(
-    "INSERT OR REPLACE INTO attendance_staff (staffId, date, status, reason) VALUES (?, ?, ?, ?)"
-  );
-  const transaction = db.transaction((recs) => {
-    for (const r of recs) {
-      upsert.run(r.staffId, r.date, r.status, r.reason || null);
-    }
+router.get("/staff", verifyToken, async (req, res) => {
+  const records = await prisma.attendanceStaff.findMany({
+    include: { staff: { select: { name: true } } },
+    orderBy: [{ date: "desc" }, { staff: { name: "asc" } }],
   });
-  transaction(records);
+  res.json(
+    records.map((r) => ({
+      id: r.id,
+      staffId: r.staffId,
+      date: r.date,
+      status: r.status,
+      reason: r.reason,
+      staffName: r.staff.name,
+    }))
+  );
+});
+
+router.get("/staff/today", verifyToken, async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const records = await prisma.attendanceStaff.findMany({
+    where: { date: today },
+    include: { staff: { select: { name: true } } },
+    orderBy: [{ staff: { name: "asc" } }],
+  });
+  res.json(
+    records.map((r) => ({
+      id: r.id,
+      staffId: r.staffId,
+      date: r.date,
+      status: r.status,
+      reason: r.reason,
+      staffName: r.staff.name,
+    }))
+  );
+});
+
+router.post("/staff/mark", verifyToken, async (req, res) => {
+  const { records } = req.body;
+  await prisma.$transaction(
+    records.map((r) =>
+      prisma.attendanceStaff.upsert({
+        where: { staffId_date: { staffId: r.staffId, date: r.date } },
+        update: { status: r.status, reason: r.reason || null },
+        create: { staffId: r.staffId, date: r.date, status: r.status, reason: r.reason || null },
+      })
+    )
+  );
   res.json({ message: "Staff attendance saved" });
 });
 

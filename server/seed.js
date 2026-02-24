@@ -1,27 +1,28 @@
 import bcrypt from "bcryptjs";
-import db from "./config/database.js";
+import prisma from "./config/prisma.js";
 
-const password = bcrypt.hashSync("admin123", 10);
+async function main() {
+  const password = bcrypt.hashSync("admin123", 10);
+  await prisma.user.upsert({
+    where: { email: "admin@ngo.com" },
+    update: {},
+    create: { name: "Admin", email: "admin@ngo.com", password, role: "admin" },
+  });
 
-db.prepare(
-  "INSERT OR IGNORE INTO users (name, email, password, role) VALUES (?, ?, ?, ?)"
-).run("Admin", "admin@ngo.com", password, "admin");
+  for (const s of [
+    { name: "Priya Sharma", age: 32, email: "priya@ngo.com" },
+    { name: "Rahul Verma", age: 28, email: "rahul@ngo.com" },
+    { name: "Anita Singh", age: 35, email: "anita@ngo.com" },
+  ]) {
+    await prisma.staff.upsert({ where: { email: s.email }, update: {}, create: s });
+  }
 
-// Sample staff entries
-db.prepare("INSERT OR IGNORE INTO staff (name, age, email) VALUES (?, ?, ?)").run(
-  "Priya Sharma",
-  32,
-  "priya@ngo.com"
-);
-db.prepare("INSERT OR IGNORE INTO staff (name, age, email) VALUES (?, ?, ?)").run(
-  "Rahul Verma",
-  28,
-  "rahul@ngo.com"
-);
-db.prepare("INSERT OR IGNORE INTO staff (name, age, email) VALUES (?, ?, ?)").run(
-  "Anita Singh",
-  35,
-  "anita@ngo.com"
-);
+  console.log("Seeded successfully");
+}
 
-console.log("Seeded successfully");
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

@@ -1,56 +1,69 @@
 import express from "express";
-import db from "../config/database.js";
+import prisma from "../config/prisma.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, (req, res) => {
-  const children = db.prepare("SELECT * FROM children ORDER BY age, name").all();
+router.get("/", verifyToken, async (req, res) => {
+  const children = await prisma.child.findMany({
+    orderBy: [{ age: "asc" }, { name: "asc" }],
+  });
   res.json(children);
 });
 
-router.post("/", verifyToken, (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   const { name, age, gender } = req.body;
-  db.prepare("INSERT INTO children (name, age, gender) VALUES (?, ?, ?)").run(name, age, gender);
+  await prisma.child.create({ data: { name, age: Number(age), gender } });
   res.json({ message: "Child added" });
 });
 
-router.put("/:id", verifyToken, (req, res) => {
+router.put("/:id", verifyToken, async (req, res) => {
   const { name, age, gender } = req.body;
-  db.prepare("UPDATE children SET name = ?, age = ?, gender = ? WHERE id = ?").run(name, age, gender, req.params.id);
+  await prisma.child.update({
+    where: { id: Number(req.params.id) },
+    data: { name, age: Number(age), gender },
+  });
   res.json({ message: "Child updated" });
 });
 
 // DELETE /by-age must be registered BEFORE /:id
-router.delete("/by-age", verifyToken, (req, res) => {
+router.delete("/by-age", verifyToken, async (req, res) => {
   const { age } = req.query;
   if (!age) return res.status(400).json({ message: "age required" });
-  const tx = db.transaction((a) => {
-    const childIds = db.prepare("SELECT id FROM children WHERE age = ?").all(a).map((c) => c.id);
-    for (const id of childIds) {
-      db.prepare("DELETE FROM logbook WHERE personId = ? AND type = 'child'").run(id);
-    }
-    db.prepare("DELETE FROM children WHERE age = ?").run(a);
-  });
-  tx(Number(age));
+
+  const childIds = (
+    await prisma.child.findMany({
+      where: { age: Number(age) },
+      select: { id: true },
+    })
+  ).map((c) => c.id);
+
+  await prisma.$transaction([
+    prisma.logbook.deleteMany({ where: { personId: { in: childIds }, type: "child" } }),
+    prisma.child.deleteMany({ where: { age: Number(age) } }),
+  ]);
+
   res.json({ message: "Age group deleted" });
 });
 
-router.delete("/:id", verifyToken, (req, res) => {
-  const tx = db.transaction((id) => {
-    db.prepare("DELETE FROM logbook WHERE personId = ? AND type = 'child'").run(id);
-    db.prepare("DELETE FROM children WHERE id = ?").run(id);
-  });
-  tx(req.params.id);
+router.delete("/:id", verifyToken, async (req, res) => {
+  const id = Number(req.params.id);
+  await prisma.$transaction([
+    prisma.logbook.deleteMany({ where: { personId: id, type: "child" } }),
+    prisma.child.delete({ where: { id } }),
+  ]);
   res.json({ message: "Child deleted" });
 });
 
-router.put("/:id/status", verifyToken, (req, res) => {
+router.put("/:id/status", verifyToken, async (req, res) => {
   const { status } = req.body;
   if (!["in", "out"].includes(status)) {
     return res.status(400).json({ message: "Status must be 'in' or 'out'" });
   }
-  db.prepare("UPDATE children SET status = ? WHERE id = ?").run(status, req.params.id);
+  await prisma.child.update({
+    where: { id: Number(req.params.id) },
+    data: { status },
+  });
   res.json({ message: "Status updated" });
 });
 

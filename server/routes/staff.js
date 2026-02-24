@@ -1,55 +1,57 @@
 import express from "express";
-import db from "../config/database.js";
+import prisma from "../config/prisma.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, (req, res) => {
-  const staff = db.prepare("SELECT * FROM staff ORDER BY name").all();
+router.get("/", verifyToken, async (req, res) => {
+  const staff = await prisma.staff.findMany({ orderBy: { name: "asc" } });
   res.json(staff);
 });
 
-router.post("/", verifyToken, (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   const { name, age, email } = req.body;
   try {
-    db.prepare("INSERT INTO staff (name, age, email) VALUES (?, ?, ?)").run(name, age, email);
+    await prisma.staff.create({ data: { name, age: age ? Number(age) : null, email } });
     res.json({ message: "Staff added" });
   } catch (err) {
-    if (err.message.includes("UNIQUE")) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+    if (err.code === "P2002") return res.status(400).json({ message: "Email already exists" });
     throw err;
   }
 });
 
-router.put("/:id", verifyToken, (req, res) => {
+router.put("/:id", verifyToken, async (req, res) => {
   const { name, age, email } = req.body;
   try {
-    db.prepare("UPDATE staff SET name = ?, age = ?, email = ? WHERE id = ?").run(name, age, email, req.params.id);
+    await prisma.staff.update({
+      where: { id: Number(req.params.id) },
+      data: { name, age: age ? Number(age) : null, email },
+    });
     res.json({ message: "Staff updated" });
   } catch (err) {
-    if (err.message.includes("UNIQUE")) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+    if (err.code === "P2002") return res.status(400).json({ message: "Email already exists" });
     throw err;
   }
 });
 
-router.delete("/:id", verifyToken, (req, res) => {
-  const tx = db.transaction((id) => {
-    db.prepare("DELETE FROM logbook WHERE personId = ? AND type = 'staff'").run(id);
-    db.prepare("DELETE FROM staff WHERE id = ?").run(id);
-  });
-  tx(req.params.id);
+router.delete("/:id", verifyToken, async (req, res) => {
+  const id = Number(req.params.id);
+  await prisma.$transaction([
+    prisma.logbook.deleteMany({ where: { personId: id, type: "staff" } }),
+    prisma.staff.delete({ where: { id } }),
+  ]);
   res.json({ message: "Staff deleted" });
 });
 
-router.put("/:id/status", verifyToken, (req, res) => {
+router.put("/:id/status", verifyToken, async (req, res) => {
   const { status } = req.body;
   if (!["in", "out"].includes(status)) {
     return res.status(400).json({ message: "Status must be 'in' or 'out'" });
   }
-  db.prepare("UPDATE staff SET status = ? WHERE id = ?").run(status, req.params.id);
+  await prisma.staff.update({
+    where: { id: Number(req.params.id) },
+    data: { status },
+  });
   res.json({ message: "Status updated" });
 });
 

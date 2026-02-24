@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String?
+  email    String  @unique
+  password String
+  role     String  @default("admin")
+
+  @@map("users")
+}
+
+model Child {
+  id        Int               @id @default(autoincrement())
+  name      String
+  age       Int
+  gender    String
+  status    String            @default("in")
+  createdAt String?           @default(dbgenerated("CURRENT_DATE::text"))
+  attendance AttendanceChild[]
+
+  @@map("children")
+}
+
+model Staff {
+  id        Int               @id @default(autoincrement())
+  name      String
+  age       Int?
+  email     String            @unique
+  status    String            @default("in")
+  createdAt String?           @default(dbgenerated("CURRENT_DATE::text"))
+  attendance AttendanceStaff[]
+
+  @@map("staff")
+}
+
+model AttendanceChild {
+  id      Int     @id @default(autoincrement())
+  childId Int
+  date    String
+  status  String
+  reason  String?
+  child   Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, date])
+  @@map("attendance_children")
+}
+
+model AttendanceStaff {
+  id      Int     @id @default(autoincrement())
+  staffId Int
+  date    String
+  status  String
+  reason  String?
+  staff   Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, date])
+  @@map("attendance_staff")
+}
+
+model Logbook {
+  id         Int       @id @default(autoincrement())
+  personId   Int
+  type       String
+  reason     String?
+  exitTime   DateTime?
+  returnTime DateTime?
+
+  @@map("logbook")
+}
+
+model VolunteerLog {
+  id            Int       @id @default(autoincrement())
+  name          String
+  reason        String?
+  arrivalTime   DateTime
+  departureTime DateTime?
+
+  @@map("volunteers_log")
+}

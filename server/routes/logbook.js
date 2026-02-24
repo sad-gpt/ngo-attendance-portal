@@ -1,103 +1,122 @@
 import express from "express";
-import db from "../config/database.js";
+import prisma from "../config/prisma.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, (req, res) => {
+function dayRange(dateStr) {
+  return {
+    gte: new Date(dateStr + "T00:00:00.000Z"),
+    lt: new Date(dateStr + "T23:59:59.999Z"),
+  };
+}
+
+async function enrichWithPersonName(entries) {
+  const childIds = entries.filter((e) => e.type === "child").map((e) => e.personId);
+  const staffIds = entries.filter((e) => e.type === "staff").map((e) => e.personId);
+  const [children, staffMembers] = await Promise.all([
+    childIds.length
+      ? prisma.child.findMany({ where: { id: { in: childIds } }, select: { id: true, name: true } })
+      : [],
+    staffIds.length
+      ? prisma.staff.findMany({ where: { id: { in: staffIds } }, select: { id: true, name: true } })
+      : [],
+  ]);
+  const childMap = Object.fromEntries(children.map((c) => [c.id, c.name]));
+  const staffMap = Object.fromEntries(staffMembers.map((s) => [s.id, s.name]));
+  return entries.map((e) => ({
+    ...e,
+    personName: e.type === "child" ? childMap[e.personId] : staffMap[e.personId],
+  }));
+}
+
+router.get("/", verifyToken, async (req, res) => {
   const { date } = req.query;
-  let entries;
-  const baseSql = `SELECT l.*,
-              CASE WHEN l.type = 'child' THEN c.name ELSE s.name END AS personName
-       FROM logbook l
-       LEFT JOIN children c ON l.type = 'child' AND l.personId = c.id
-       LEFT JOIN staff s ON l.type = 'staff' AND l.personId = s.id`;
-
-  if (date) {
-    entries = db.prepare(`${baseSql} WHERE date(l.exitTime) = ? ORDER BY l.id DESC`).all(date);
-  } else {
-    entries = db.prepare(`${baseSql} ORDER BY l.id DESC`).all();
-  }
-  res.json(entries);
+  const entries = await prisma.logbook.findMany({
+    where: date ? { exitTime: dayRange(date) } : {},
+    orderBy: { id: "desc" },
+  });
+  res.json(await enrichWithPersonName(entries));
 });
 
-router.get("/active", verifyToken, (req, res) => {
-  const entries = db
-    .prepare(
-      `SELECT l.*,
-              CASE WHEN l.type = 'child' THEN c.name ELSE s.name END AS personName
-       FROM logbook l
-       LEFT JOIN children c ON l.type = 'child' AND l.personId = c.id
-       LEFT JOIN staff s ON l.type = 'staff' AND l.personId = s.id
-       WHERE l.returnTime IS NULL
-       ORDER BY l.id DESC`
-    )
-    .all();
-  res.json(entries);
+router.get("/active", verifyToken, async (req, res) => {
+  const entries = await prisma.logbook.findMany({
+    where: { returnTime: null },
+    orderBy: { id: "desc" },
+  });
+  res.json(await enrichWithPersonName(entries));
 });
 
-router.post("/", verifyToken, (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   const { personId, type, reason, exitTime } = req.body;
-  const tx = db.transaction(() => {
-    db.prepare(
-      "INSERT INTO logbook (personId, type, reason, exitTime) VALUES (?, ?, ?, ?)"
-    ).run(personId, type, reason || null, exitTime);
+  await prisma.$transaction(async (tx) => {
+    await tx.logbook.create({
+      data: { personId, type, reason: reason || null, exitTime: new Date(exitTime) },
+    });
     if (type === "child") {
-      db.prepare("UPDATE children SET status = 'out' WHERE id = ?").run(personId);
+      await tx.child.update({ where: { id: personId }, data: { status: "out" } });
     } else if (type === "staff") {
-      db.prepare("UPDATE staff SET status = 'out' WHERE id = ?").run(personId);
+      await tx.staff.update({ where: { id: personId }, data: { status: "out" } });
     }
   });
-  tx();
   res.json({ message: "Exit logged" });
 });
 
-router.put("/:id/return", verifyToken, (req, res) => {
+router.put("/:id/return", verifyToken, async (req, res) => {
   const { returnTime } = req.body;
-  const entry = db.prepare("SELECT * FROM logbook WHERE id = ?").get(req.params.id);
+  const id = Number(req.params.id);
+  const entry = await prisma.logbook.findUnique({ where: { id } });
   if (!entry) return res.status(404).json({ message: "Entry not found" });
-  const tx = db.transaction(() => {
-    db.prepare("UPDATE logbook SET returnTime = ? WHERE id = ?").run(returnTime, req.params.id);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.logbook.update({ where: { id }, data: { returnTime: new Date(returnTime) } });
     if (entry.type === "child") {
-      db.prepare("UPDATE children SET status = 'in' WHERE id = ?").run(entry.personId);
+      await tx.child.update({ where: { id: entry.personId }, data: { status: "in" } });
     } else if (entry.type === "staff") {
-      db.prepare("UPDATE staff SET status = 'in' WHERE id = ?").run(entry.personId);
+      await tx.staff.update({ where: { id: entry.personId }, data: { status: "in" } });
     }
   });
-  tx();
   res.json({ message: "Return logged" });
 });
 
-router.put("/:id", verifyToken, (req, res) => {
+router.put("/:id", verifyToken, async (req, res) => {
   const { exitTime, returnTime, reason } = req.body;
-  const entry = db.prepare("SELECT * FROM logbook WHERE id = ?").get(req.params.id);
+  const id = Number(req.params.id);
+  const entry = await prisma.logbook.findUnique({ where: { id } });
   if (!entry) return res.status(404).json({ message: "Entry not found" });
-  const tx = db.transaction(() => {
-    db.prepare("UPDATE logbook SET exitTime = ?, returnTime = ?, reason = ? WHERE id = ?")
-      .run(exitTime || null, returnTime || null, reason || null, req.params.id);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.logbook.update({
+      where: { id },
+      data: {
+        exitTime: exitTime ? new Date(exitTime) : null,
+        returnTime: returnTime ? new Date(returnTime) : null,
+        reason: reason || null,
+      },
+    });
     const newStatus = returnTime ? "in" : "out";
     if (entry.type === "child") {
-      db.prepare("UPDATE children SET status = ? WHERE id = ?").run(newStatus, entry.personId);
+      await tx.child.update({ where: { id: entry.personId }, data: { status: newStatus } });
     } else if (entry.type === "staff") {
-      db.prepare("UPDATE staff SET status = ? WHERE id = ?").run(newStatus, entry.personId);
+      await tx.staff.update({ where: { id: entry.personId }, data: { status: newStatus } });
     }
   });
-  tx();
   res.json({ message: "Entry updated" });
 });
 
-router.delete("/:id", verifyToken, (req, res) => {
-  const entry = db.prepare("SELECT * FROM logbook WHERE id = ?").get(req.params.id);
+router.delete("/:id", verifyToken, async (req, res) => {
+  const id = Number(req.params.id);
+  const entry = await prisma.logbook.findUnique({ where: { id } });
   if (!entry) return res.status(404).json({ message: "Entry not found" });
-  const tx = db.transaction(() => {
-    db.prepare("DELETE FROM logbook WHERE id = ?").run(req.params.id);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.logbook.delete({ where: { id } });
     if (entry.type === "child") {
-      db.prepare("UPDATE children SET status = 'in' WHERE id = ?").run(entry.personId);
+      await tx.child.update({ where: { id: entry.personId }, data: { status: "in" } });
     } else if (entry.type === "staff") {
-      db.prepare("UPDATE staff SET status = 'in' WHERE id = ?").run(entry.personId);
+      await tx.staff.update({ where: { id: entry.personId }, data: { status: "in" } });
     }
   });
-  tx();
   res.json({ message: "Entry deleted" });
 });
 
