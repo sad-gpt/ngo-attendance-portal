@@ -15,8 +15,6 @@ const app = express();
 
 /* ==============================
    CORS CONFIG
-   CLIENT_ORIGIN can be:
-   CLIENT_ORIGIN=http://localhost:5173,https://app.onrender.com
 ============================== */
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")
@@ -26,7 +24,6 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow server-to-server, curl, postman (no origin header)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -38,9 +35,6 @@ app.use(
     credentials: true,
   })
 );
-
-// Explicitly handle preflight requests
-
 
 app.use(express.json());
 
@@ -56,10 +50,17 @@ app.use("/api/logbook", logbookRoutes);
 app.use("/api/volunteers-log", volunteersLogRoutes);
 
 /* ==============================
-   HEALTH CHECK
+   ROOT CHECK
 ============================== */
 app.get("/", (req, res) => {
   res.status(200).send("Backend is running 🚀");
+});
+
+/* ==============================
+   HEALTH CHECK (for uptime monitor)
+============================== */
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
 /* ==============================
@@ -74,7 +75,6 @@ app.use((req, res) => {
 
 /* ==============================
    GLOBAL ERROR HANDLER
-   Express 5 forwards async errors automatically
 ============================== */
 app.use((err, req, res, next) => {
   console.error("🔥 Global Error:", err);
