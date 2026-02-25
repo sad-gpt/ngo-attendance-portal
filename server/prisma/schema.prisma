@@ -26,6 +26,8 @@ model Child {
   createdAt String?           @default(dbgenerated("CURRENT_DATE::text"))
   attendance AttendanceChild[]
 
+  @@index([age, name])
+  @@index([status])
   @@map("children")
 }
 
@@ -38,6 +40,7 @@ model Staff {
   createdAt String?           @default(dbgenerated("CURRENT_DATE::text"))
   attendance AttendanceStaff[]
 
+  @@index([status])
   @@map("staff")
 }
 
@@ -50,6 +53,7 @@ model AttendanceChild {
   child   Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@unique([childId, date])
+  @@index([date])
   @@map("attendance_children")
 }
 
@@ -62,6 +66,7 @@ model AttendanceStaff {
   staff   Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@unique([staffId, date])
+  @@index([date])
   @@map("attendance_staff")
 }
 
@@ -73,6 +78,9 @@ model Logbook {
   exitTime   DateTime?
   returnTime DateTime?
 
+  @@index([returnTime])
+  @@index([exitTime])
+  @@index([type, personId])
   @@map("logbook")
 }
 
@@ -83,5 +91,6 @@ model VolunteerLog {
   arrivalTime   DateTime
   departureTime DateTime?
 
+  @@index([arrivalTime])
   @@map("volunteers_log")
 }
