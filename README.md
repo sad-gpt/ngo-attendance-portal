@@ -2,6 +2,7 @@
 
 A full-stack web application for managing children, staff, attendance, exit/entry tracking, and volunteer logging at the NGO campus.
 
+Live Site - https://ngo-attendance-portal.vercel.app
 ---
 
 ## Table of Contents
@@ -367,3 +368,4 @@ When bulk importing children via the Excel upload on the Children page, the spre
 | name | Yes | Aarav Sharma |
 | age | Yes | 10 |
 | gender | Yes | Male |
+
